@@ -16,7 +16,6 @@
             <div class="logo" onclick="closeAllViews()">LUXE.</div>
             <div class="nav-icons">
                 <i class="fas fa-search" onclick="toggleSearch()"></i>
-                <!-- User icon removed as requested -->
                 <div class="cart-icon-wrapper" onclick="openCart()">
                     <i class="fas fa-shopping-bag"></i>
                     <span class="cart-count" id="cart-count-badge">0</span>
@@ -27,24 +26,21 @@
 
     <!-- Search Bar Dropdown -->
     <div class="search-bar-container" id="search-bar" style="display: none;">
-        <input type="text" id="search-input" onkeyup="searchProducts()" placeholder="Search for products, categories...">
+        <input type="text" id="search-input" onkeyup="searchProducts()" placeholder="Search products...">
         <i class="fas fa-times" onclick="toggleSearch()"></i>
     </div>
 
-    <!-- === CATALOG VIEW === -->
+    <!-- === CATALOG VIEW (Home Page) === -->
     <div id="catalog-view">
+        <header class="hero" id="hero-banner">
+            <div class="hero-content">
+                <h1>The New Collection</h1>
+                <p>Elevate your everyday style.</p>
+            </div>
+        </header>
         
-        <!-- Hero section wrapped in an ID so we can hide it during search -->
-        <div id="home-hero-section">
-            <header class="hero">
-                <div class="hero-content">
-                    <h1>The New Collection</h1>
-                    <p>Elevate your everyday style.</p>
-                </div>
-            </header>
-        </div>
-
         <main class="store-container">
+            <!-- Dynamic Category Filters -->
             <div class="filter-bar" id="filter-bar">
                 <button class="filter-btn active" onclick="filterProducts('All')">All</button>
                 <button class="filter-btn" onclick="filterProducts('Outerwear')">Outerwear</button>
@@ -53,18 +49,19 @@
                 <button class="filter-btn" onclick="filterProducts('Accessories')">Accessories</button>
             </div>
             
-            <!-- Main Products -->
+            <!-- Main / Searched Products -->
             <div class="product-grid" id="product-grid"></div>
 
-            <!-- Extra Home Page Sections (Hidden during search/filter) -->
+            <!-- Extra Home Sections (Hidden during search) -->
             <div id="home-extra-sections">
-                <div class="related-section">
-                    <h2>Newly Arrived</h2>
-                    <div class="product-grid" id="newly-arrived-grid"></div>
-                </div>
                 <div class="related-section">
                     <h2>Trending Now</h2>
                     <div class="product-grid" id="trending-grid"></div>
+                </div>
+                
+                <div class="related-section">
+                    <h2>Newly Arrived</h2>
+                    <div class="product-grid" id="new-grid"></div>
                 </div>
             </div>
         </main>
@@ -103,8 +100,7 @@
                     </button>
                     
                     <div class="shipping-info">
-                        <p><i class="fas fa-truck"></i> Free shipping on orders over $150</p>
-                        <p><i class="fas fa-undo"></i> 30-day return policy</p>
+                        <p><i class="fas fa-truck"></i> Fast delivery via Telegram & Viber</p>
                     </div>
                 </div>
             </div>
@@ -152,40 +148,31 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Recommended Items at Checkout -->
             <div class="related-section" style="margin-top: 4rem;">
-                <h2>Recommended For You</h2>
+                <h2>Recommended for You</h2>
                 <div class="product-grid" id="checkout-recommended-grid"></div>
             </div>
         </main>
     </div>
 
-    <!-- Infinite Image Carousel (Wrapped in ID to hide during checkout) -->
-    <div id="bottom-carousel">
-        <div class="model-carousel">
-            <div class="model-track">
-                <!-- Set 1 -->
-                <div class="model-item">💃</div><div class="model-item">🕺</div><div class="model-item">🧍‍♀️</div>
-                <div class="model-item">🧍‍♂️</div><div class="model-item">🚶‍♀️</div><div class="model-item">🚶‍♂️</div>
-                <!-- Set 2 -->
-                <div class="model-item">💃</div><div class="model-item">🕺</div><div class="model-item">🧍‍♀️</div>
-                <div class="model-item">🧍‍♂️</div><div class="model-item">🚶‍♀️</div><div class="model-item">🚶‍♂️</div>
-            </div>
+    <!-- Infinite Image Carousel (Bottom of all views) -->
+    <div class="model-carousel">
+        <div class="model-track">
+            <div class="model-item">💃</div><div class="model-item">🕺</div><div class="model-item">🧍‍♀️</div>
+            <div class="model-item">🧍‍♂️</div><div class="model-item">🚶‍♀️</div><div class="model-item">🚶‍♂️</div>
+            <div class="model-item">💃</div><div class="model-item">🕺</div><div class="model-item">🧍‍♀️</div>
+            <div class="model-item">🧍‍♂️</div><div class="model-item">🚶‍♀️</div><div class="model-item">🚶‍♂️</div>
         </div>
     </div>
 
-    <!-- Professional Footer -->
+    <!-- Footer -->
     <footer class="store-footer">
         <div class="footer-grid">
             <div class="footer-brand">
                 <h2>LUXE.</h2>
                 <p>Curated fashion for the modern aesthetic.</p>
-            </div>
-            <div class="footer-links">
-                <h3>Customer Care</h3>
-                <a href="#">Contact Us</a>
-                <a href="#">Shipping & Returns</a>
             </div>
             <div class="footer-social">
                 <h3>Follow Us</h3>
