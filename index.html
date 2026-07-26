@@ -16,7 +16,7 @@
             <div class="logo" onclick="closeAllViews()">LUXE.</div>
             <div class="nav-icons">
                 <i class="fas fa-search" onclick="toggleSearch()"></i>
-                <i class="fas fa-user" onclick="alert('Welcome! Customer Accounts & Order History will be available soon.')"></i>
+                <!-- User icon removed as requested -->
                 <div class="cart-icon-wrapper" onclick="openCart()">
                     <i class="fas fa-shopping-bag"></i>
                     <span class="cart-count" id="cart-count-badge">0</span>
@@ -33,12 +33,17 @@
 
     <!-- === CATALOG VIEW === -->
     <div id="catalog-view">
-        <header class="hero">
-            <div class="hero-content">
-                <h1>The New Collection</h1>
-                <p>Elevate your everyday style.</p>
-            </div>
-        </header>
+        
+        <!-- Hero section wrapped in an ID so we can hide it during search -->
+        <div id="home-hero-section">
+            <header class="hero">
+                <div class="hero-content">
+                    <h1>The New Collection</h1>
+                    <p>Elevate your everyday style.</p>
+                </div>
+            </header>
+        </div>
+
         <main class="store-container">
             <div class="filter-bar" id="filter-bar">
                 <button class="filter-btn active" onclick="filterProducts('All')">All</button>
@@ -47,7 +52,21 @@
                 <button class="filter-btn" onclick="filterProducts('Bottoms')">Bottoms</button>
                 <button class="filter-btn" onclick="filterProducts('Accessories')">Accessories</button>
             </div>
+            
+            <!-- Main Products -->
             <div class="product-grid" id="product-grid"></div>
+
+            <!-- Extra Home Page Sections (Hidden during search/filter) -->
+            <div id="home-extra-sections">
+                <div class="related-section">
+                    <h2>Newly Arrived</h2>
+                    <div class="product-grid" id="newly-arrived-grid"></div>
+                </div>
+                <div class="related-section">
+                    <h2>Trending Now</h2>
+                    <div class="product-grid" id="trending-grid"></div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -90,14 +109,9 @@
                 </div>
             </div>
 
-            <!-- Related Products moved directly below Add-to-Cart section -->
             <div class="related-section">
                 <h2>More in <span id="related-category-name">This Category</span></h2>
                 <div class="product-grid" id="related-grid-same"></div>
-            </div>
-            <div class="related-section">
-                <h2>You Might Also Like</h2>
-                <div class="product-grid" id="related-grid-other"></div>
             </div>
         </main>
     </div>
@@ -138,26 +152,26 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Recommended Items at Checkout -->
+            <div class="related-section" style="margin-top: 4rem;">
+                <h2>Recommended For You</h2>
+                <div class="product-grid" id="checkout-recommended-grid"></div>
+            </div>
         </main>
     </div>
 
-    <!-- Infinite Image Carousel (Always visible above footer) -->
-    <div class="model-carousel">
-        <div class="model-track">
-            <!-- Set 1 -->
-            <div class="model-item">💃</div>
-            <div class="model-item">🕺</div>
-            <div class="model-item">🧍‍♀️</div>
-            <div class="model-item">🧍‍♂️</div>
-            <div class="model-item">🚶‍♀️</div>
-            <div class="model-item">🚶‍♂️</div>
-            <!-- Set 2 (Duplicated exactly for a seamless infinite loop) -->
-            <div class="model-item">💃</div>
-            <div class="model-item">🕺</div>
-            <div class="model-item">🧍‍♀️</div>
-            <div class="model-item">🧍‍♂️</div>
-            <div class="model-item">🚶‍♀️</div>
-            <div class="model-item">🚶‍♂️</div>
+    <!-- Infinite Image Carousel (Wrapped in ID to hide during checkout) -->
+    <div id="bottom-carousel">
+        <div class="model-carousel">
+            <div class="model-track">
+                <!-- Set 1 -->
+                <div class="model-item">💃</div><div class="model-item">🕺</div><div class="model-item">🧍‍♀️</div>
+                <div class="model-item">🧍‍♂️</div><div class="model-item">🚶‍♀️</div><div class="model-item">🚶‍♂️</div>
+                <!-- Set 2 -->
+                <div class="model-item">💃</div><div class="model-item">🕺</div><div class="model-item">🧍‍♀️</div>
+                <div class="model-item">🧍‍♂️</div><div class="model-item">🚶‍♀️</div><div class="model-item">🚶‍♂️</div>
+            </div>
         </div>
     </div>
 
@@ -172,14 +186,12 @@
                 <h3>Customer Care</h3>
                 <a href="#">Contact Us</a>
                 <a href="#">Shipping & Returns</a>
-                <a href="#">Size Guide</a>
             </div>
             <div class="footer-social">
                 <h3>Follow Us</h3>
                 <div class="social-icons">
                     <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
                     <a href="#"><i class="fa-brands fa-tiktok"></i></a>
-                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
                 </div>
             </div>
         </div>
