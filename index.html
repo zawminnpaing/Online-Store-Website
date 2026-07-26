@@ -26,13 +26,13 @@
 
     <!-- Search Bar Dropdown -->
     <div class="search-bar-container" id="search-bar" style="display: none;">
-        <input type="text" id="search-input" onkeyup="searchProducts()" placeholder="Search products...">
+        <input type="text" id="search-input" onkeyup="searchProducts()" placeholder="Search for products, categories...">
         <i class="fas fa-times" onclick="toggleSearch()"></i>
     </div>
 
-    <!-- === CATALOG VIEW (Home Page) === -->
+    <!-- === CATALOG VIEW === -->
     <div id="catalog-view">
-        <header class="hero" id="hero-banner">
+        <header class="hero" id="main-hero">
             <div class="hero-content">
                 <h1>The New Collection</h1>
                 <p>Elevate your everyday style.</p>
@@ -40,7 +40,6 @@
         </header>
         
         <main class="store-container">
-            <!-- Dynamic Category Filters -->
             <div class="filter-bar" id="filter-bar">
                 <button class="filter-btn active" onclick="filterProducts('All')">All</button>
                 <button class="filter-btn" onclick="filterProducts('Outerwear')">Outerwear</button>
@@ -49,19 +48,18 @@
                 <button class="filter-btn" onclick="filterProducts('Accessories')">Accessories</button>
             </div>
             
-            <!-- Main / Searched Products -->
+            <!-- Main Grid -->
             <div class="product-grid" id="product-grid"></div>
 
-            <!-- Extra Home Sections (Hidden during search) -->
+            <!-- Extra Home Sections -->
             <div id="home-extra-sections">
+                <div class="related-section">
+                    <h2>Newly Arrived</h2>
+                    <div class="product-grid" id="new-arrivals-grid"></div>
+                </div>
                 <div class="related-section">
                     <h2>Trending Now</h2>
                     <div class="product-grid" id="trending-grid"></div>
-                </div>
-                
-                <div class="related-section">
-                    <h2>Newly Arrived</h2>
-                    <div class="product-grid" id="new-grid"></div>
                 </div>
             </div>
         </main>
@@ -100,7 +98,8 @@
                     </button>
                     
                     <div class="shipping-info">
-                        <p><i class="fas fa-truck"></i> Fast delivery via Telegram & Viber</p>
+                        <p><i class="fas fa-truck"></i> Free shipping on orders over $150</p>
+                        <p><i class="fas fa-undo"></i> 30-day return policy</p>
                     </div>
                 </div>
             </div>
@@ -108,6 +107,10 @@
             <div class="related-section">
                 <h2>More in <span id="related-category-name">This Category</span></h2>
                 <div class="product-grid" id="related-grid-same"></div>
+            </div>
+            <div class="related-section">
+                <h2>You Might Also Like</h2>
+                <div class="product-grid" id="related-grid-other"></div>
             </div>
         </main>
     </div>
@@ -148,37 +151,54 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Recommended Items at Checkout -->
+            
+            <!-- Recommended Items on Checkout Page -->
             <div class="related-section" style="margin-top: 4rem;">
-                <h2>Recommended for You</h2>
-                <div class="product-grid" id="checkout-recommended-grid"></div>
+                <h2>Recommended For You</h2>
+                <div class="product-grid" id="cart-recommended-grid"></div>
             </div>
         </main>
     </div>
 
-    <!-- Infinite Image Carousel (Bottom of all views) -->
+    <!-- Infinite Image Carousel -->
     <div class="model-carousel">
         <div class="model-track">
-            <div class="model-item">💃</div><div class="model-item">🕺</div><div class="model-item">🧍‍♀️</div>
-            <div class="model-item">🧍‍♂️</div><div class="model-item">🚶‍♀️</div><div class="model-item">🚶‍♂️</div>
-            <div class="model-item">💃</div><div class="model-item">🕺</div><div class="model-item">🧍‍♀️</div>
-            <div class="model-item">🧍‍♂️</div><div class="model-item">🚶‍♀️</div><div class="model-item">🚶‍♂️</div>
+            <!-- Set 1 -->
+            <div class="model-item">💃</div>
+            <div class="model-item">🕺</div>
+            <div class="model-item">🧍‍♀️</div>
+            <div class="model-item">🧍‍♂️</div>
+            <div class="model-item">🚶‍♀️</div>
+            <div class="model-item">🚶‍♂️</div>
+            <!-- Set 2 -->
+            <div class="model-item">💃</div>
+            <div class="model-item">🕺</div>
+            <div class="model-item">🧍‍♀️</div>
+            <div class="model-item">🧍‍♂️</div>
+            <div class="model-item">🚶‍♀️</div>
+            <div class="model-item">🚶‍♂️</div>
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Professional Footer -->
     <footer class="store-footer">
         <div class="footer-grid">
             <div class="footer-brand">
                 <h2>LUXE.</h2>
                 <p>Curated fashion for the modern aesthetic.</p>
             </div>
+            <div class="footer-links">
+                <h3>Customer Care</h3>
+                <a href="#">Contact Us</a>
+                <a href="#">Shipping & Returns</a>
+                <a href="#">Size Guide</a>
+            </div>
             <div class="footer-social">
                 <h3>Follow Us</h3>
                 <div class="social-icons">
                     <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
                     <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
                 </div>
             </div>
         </div>
