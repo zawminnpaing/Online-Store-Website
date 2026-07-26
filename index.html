@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Luxe | Digital Catalog</title>
-    <!-- Elegant Typography -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
@@ -14,30 +13,27 @@
     <!-- Sticky Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo" onclick="closeProduct()">LUXE.</div>
+            <div class="logo" onclick="closeAllViews()">LUXE.</div>
             <div class="nav-icons">
                 <i class="fas fa-search"></i>
                 <i class="fas fa-user"></i>
-                <i class="fas fa-shopping-bag">
-                    <span class="cart-count">0</span>
-                </i>
+                <div class="cart-icon-wrapper" onclick="openCart()">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count" id="cart-count-badge">0</span>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- === CATALOG VIEW === -->
     <div id="catalog-view">
-        <!-- Hero Section -->
         <header class="hero">
             <div class="hero-content">
                 <h1>The New Collection</h1>
                 <p>Elevate your everyday style.</p>
             </div>
         </header>
-
-        <!-- Main Storefront -->
         <main class="store-container">
-            <!-- Dynamic Category Filters -->
             <div class="filter-bar" id="filter-bar">
                 <button class="filter-btn active" onclick="filterProducts('All')">All</button>
                 <button class="filter-btn" onclick="filterProducts('Outerwear')">Outerwear</button>
@@ -45,41 +41,39 @@
                 <button class="filter-btn" onclick="filterProducts('Bottoms')">Bottoms</button>
                 <button class="filter-btn" onclick="filterProducts('Accessories')">Accessories</button>
             </div>
-
-            <!-- Compact Product Grid -->
-            <div class="product-grid" id="product-grid">
-                <!-- Products injected here -->
-            </div>
+            <div class="product-grid" id="product-grid"></div>
         </main>
     </div>
 
-    <!-- === PRODUCT DETAIL VIEW (Hidden by Default) === -->
+    <!-- === PRODUCT DETAIL VIEW === -->
     <div id="product-view" style="display: none;">
         <main class="detail-container">
-            <!-- Back Button -->
-            <button class="back-btn" onclick="closeProduct()">
+            <button class="back-btn" onclick="closeAllViews()">
                 <i class="fas fa-arrow-left"></i> Back to Catalog
             </button>
 
-            <!-- Product Layout -->
             <div class="detail-layout">
-                <!-- Image Gallery -->
                 <div class="detail-gallery">
                     <div class="main-image-container">
                         <div class="emoji-placeholder large-emoji" id="detail-main-img">🧥</div>
                     </div>
-                    <div class="thumbnail-row" id="detail-thumbnails">
-                        <!-- Thumbnails injected here -->
-                    </div>
+                    <div class="thumbnail-row" id="detail-thumbnails"></div>
                 </div>
 
-                <!-- Product Info -->
                 <div class="detail-info">
                     <p class="product-brand" id="detail-category">Category</p>
                     <h1 class="detail-title" id="detail-title">Product Name</h1>
                     <p class="detail-price" id="detail-price">$0.00</p>
-                    <p class="detail-description">Experience premium quality and timeless design. This piece is crafted for maximum comfort and style, perfect for any occasion.</p>
                     
+                    <div class="qty-selector">
+                        <button onclick="changeQty(-1)">-</button>
+                        <input type="number" id="item-qty" value="1" min="1" readonly>
+                        <button onclick="changeQty(1)">+</button>
+                    </div>
+                    
+                    <!-- Hidden input to store product ID for the cart -->
+                    <input type="hidden" id="current-product-id">
+
                     <button class="add-to-cart-btn" onclick="addToCart()">
                         Add to Cart <i class="fas fa-shopping-bag"></i>
                     </button>
@@ -90,42 +84,68 @@
                     </div>
                 </div>
             </div>
+        </main>
+    </div>
 
-            <!-- Related Products Section -->
-            <div class="related-section">
-                <h2>More in <span id="related-category-name">This Category</span></h2>
-                <div class="product-grid" id="related-grid-same"></div>
-            </div>
+    <!-- === CART & CHECKOUT VIEW === -->
+    <div id="cart-view" style="display: none;">
+        <main class="detail-container">
+            <button class="back-btn" onclick="closeAllViews()">
+                <i class="fas fa-arrow-left"></i> Continue Shopping
+            </button>
 
-            <!-- Other Categories Section -->
-            <div class="related-section">
-                <h2>You Might Also Like</h2>
-                <div class="product-grid" id="related-grid-other"></div>
+            <div class="cart-layout">
+                <!-- Cart Items Section -->
+                <div class="cart-items-section">
+                    <h2>Your Bag</h2>
+                    <div id="cart-items-container">
+                        <!-- Cart items injected here -->
+                    </div>
+                    <div class="cart-total">
+                        <span>Total:</span>
+                        <span id="cart-total-price">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Checkout Form Section -->
+                <div class="checkout-section">
+                    <h2>Checkout Details</h2>
+                    <form id="checkout-form">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="cust-name" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Number</label>
+                            <input type="tel" id="cust-phone" placeholder="09xxxxxxxxx" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Delivery Location (Full Address)</label>
+                            <textarea id="cust-address" rows="3" placeholder="Apt, Street, Township, City" required></textarea>
+                        </div>
+                    </form>
+
+                    <div class="checkout-actions">
+                        <p class="action-title">Place Order Via:</p>
+                        <button class="checkout-btn telegram-btn" onclick="processCheckout('telegram')">
+                            <i class="fab fa-telegram-plane"></i> Send to Telegram
+                        </button>
+                        <button class="checkout-btn viber-btn" onclick="processCheckout('viber')">
+                            <i class="fab fa-viber"></i> Send to Viber
+                        </button>
+                        
+                        <div class="manual-call">
+                            <p>Or order manually by calling:</p>
+                            <a href="tel:+959793155856" class="call-btn"><i class="fas fa-phone-alt"></i> 09793155856</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
     <!-- Professional Footer -->
     <footer class="store-footer">
-        <div class="footer-grid">
-            <div class="footer-brand">
-                <h2>LUXE.</h2>
-                <p>Curated fashion for the modern aesthetic.</p>
-            </div>
-            <div class="footer-links">
-                <h3>Customer Care</h3>
-                <a href="#">Contact Us</a>
-                <a href="#">Shipping & Returns</a>
-                <a href="#">Size Guide</a>
-            </div>
-            <div class="footer-social">
-                <h3>Follow Us</h3>
-                <div class="social-icons">
-                    <i class="fab fa-instagram"></i>
-                    <i class="fab fa-facebook-f"></i>
-                </div>
-            </div>
-        </div>
         <div class="footer-bottom">
             <p>&copy; 2026 Luxe Fashion. All rights reserved.</p>
         </div>
