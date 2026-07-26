@@ -1,4 +1,3 @@
-/* Core Variables & Reset */
 :root {
     --bg-color: #ffffff;
     --text-dark: #1a1a1a;
@@ -27,27 +26,23 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
 .search-bar-container { background: var(--bg-color); padding: 1rem 1.5rem; border-bottom: 1px solid #eaeaea; display: flex; justify-content: center; align-items: center; gap: 1rem; position: sticky; top: 65px; z-index: 999; }
 .search-bar-container input { width: 100%; max-width: 600px; padding: 0.8rem 1rem; border: 1px solid #ccc; border-radius: 20px; font-size: 1rem; font-family: 'Inter', sans-serif; outline: none; }
 
-/* Massive Hero Banner */
+/* Hero Banner - REDUCED HEIGHT FOR MOBILE */
 .hero { 
     position: relative;
-    /* High-end fashion placeholder image from Unsplash */
     background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop'); 
     background-size: cover;
     background-position: center;
-    padding: 8rem 1.5rem; 
+    padding: 3.5rem 1.5rem; /* Shorter for mobile */
     text-align: center; 
     color: #ffffff;
 }
-.hero::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.5); /* Dark overlay so text is readable */
-    z-index: 1;
+@media (min-width: 768px) {
+    .hero { padding: 8rem 1.5rem; } /* Taller for desktop */
 }
+.hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1; }
 .hero-content { position: relative; z-index: 2; }
-.hero h1 { font-size: 3rem; margin-bottom: 0.5rem; color: #ffffff;}
-.hero p { color: #f0f0f0; font-size: 1.1rem; }
+.hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #ffffff;}
+.hero p { color: #f0f0f0; font-size: 1rem; }
 
 /* Layouts & Grid */
 .store-container, .detail-container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
@@ -66,7 +61,7 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
 .product-title { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .product-price { font-weight: 600; font-size: 0.9rem; }
 
-/* Detail View */
+/* Detail View & Related Sections */
 .back-btn { background: none; border: none; font-size: 1rem; color: var(--text-light); cursor: pointer; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; }
 .detail-layout { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 3rem; }
 @media (min-width: 768px) { .detail-layout { grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; } }
@@ -81,7 +76,7 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
 .qty-selector input { width: 40px; text-align: center; border: none; font-size: 1rem; font-weight: 600; outline: none; }
 .add-to-cart-btn { width: 100%; background: var(--accent); color: white; border: none; padding: 1.2rem; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-radius: 8px; display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
 .shipping-info p { font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-.related-section { margin-top: 2rem; border-top: 1px solid #eaeaea; padding-top: 2rem; }
+.related-section { margin-top: 2rem; padding-top: 2rem; }
 .related-section h2 { font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center; }
 
 /* === CART & CHECKOUT STYLES === */
@@ -108,12 +103,8 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
 /* === INFINITE MODEL CAROUSEL === */
 .model-carousel { overflow: hidden; background: #ffffff; padding: 2rem 0; margin-top: 2rem; white-space: nowrap; position: relative; border-top: 1px solid #eaeaea; }
 .model-track { display: inline-block; animation: scroll 20s linear infinite; }
-.model-carousel:hover .model-track { animation-play-state: paused; } /* Pauses on hover */
 .model-item { display: inline-flex; align-items: center; justify-content: center; width: 150px; height: 200px; background: var(--gray-bg); margin: 0 1rem; font-size: 5rem; border-radius: 12px; }
-@keyframes scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); } 
-}
+@keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
 /* Footer */
 .store-footer { background-color: var(--text-dark); color: #ffffff; padding: 4rem 1.5rem 1.5rem; }
