@@ -14,79 +14,122 @@
     <!-- Sticky Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-icon"><i class="fas fa-bars"></i></div>
-            <div class="logo">LUXE.</div>
+            <div class="logo" onclick="closeProduct()">LUXE.</div>
             <div class="nav-icons">
                 <i class="fas fa-search"></i>
-                <i class="fas fa-shopping-bag"></i>
+                <i class="fas fa-user"></i>
+                <i class="fas fa-shopping-bag">
+                    <span class="cart-count">0</span>
+                </i>
             </div>
         </div>
     </nav>
 
-    <!-- Main Storefront -->
-    <main class="store-container">
-        <!-- Dynamic Category Filters -->
-        <div class="filter-bar" id="filter-bar">
-            <button class="filter-btn active" onclick="filterProducts('All')">All</button>
-            <button class="filter-btn" onclick="filterProducts('Outerwear')">Outerwear</button>
-            <button class="filter-btn" onclick="filterProducts('Tops')">Tops</button>
-            <button class="filter-btn" onclick="filterProducts('Bottoms')">Bottoms</button>
-            <button class="filter-btn" onclick="filterProducts('Accessories')">Accessories</button>
-        </div>
+    <!-- === CATALOG VIEW === -->
+    <div id="catalog-view">
+        <!-- Hero Section -->
+        <header class="hero">
+            <div class="hero-content">
+                <h1>The New Collection</h1>
+                <p>Elevate your everyday style.</p>
+            </div>
+        </header>
 
-        <!-- Compact Product Grid -->
-        <div class="product-grid" id="product-grid">
-            <!-- Products injected here -->
-        </div>
-    </main>
+        <!-- Main Storefront -->
+        <main class="store-container">
+            <!-- Dynamic Category Filters -->
+            <div class="filter-bar" id="filter-bar">
+                <button class="filter-btn active" onclick="filterProducts('All')">All</button>
+                <button class="filter-btn" onclick="filterProducts('Outerwear')">Outerwear</button>
+                <button class="filter-btn" onclick="filterProducts('Tops')">Tops</button>
+                <button class="filter-btn" onclick="filterProducts('Bottoms')">Bottoms</button>
+                <button class="filter-btn" onclick="filterProducts('Accessories')">Accessories</button>
+            </div>
 
-    <!-- FULL SCREEN PRODUCT PAGE (Hidden by default) -->
-    <div id="product-page" class="product-page-overlay">
-        <!-- Sticky Header for Product Page -->
-        <div class="product-page-header">
-            <button class="back-btn" onclick="closeProductPage()"><i class="fas fa-arrow-left"></i> Back</button>
-            <div class="logo" style="font-size: 1.2rem;">LUXE.</div>
-            <i class="fas fa-shopping-bag"></i>
-        </div>
+            <!-- Compact Product Grid -->
+            <div class="product-grid" id="product-grid">
+                <!-- Products injected here -->
+            </div>
+        </main>
+    </div>
 
-        <div class="product-page-content">
-            <!-- 3-Angle Gallery -->
-            <div class="product-gallery">
-                <div class="main-image-container" id="detail-main-img">
-                    <!-- Main Emoji -->
+    <!-- === PRODUCT DETAIL VIEW (Hidden by Default) === -->
+    <div id="product-view" style="display: none;">
+        <main class="detail-container">
+            <!-- Back Button -->
+            <button class="back-btn" onclick="closeProduct()">
+                <i class="fas fa-arrow-left"></i> Back to Catalog
+            </button>
+
+            <!-- Product Layout -->
+            <div class="detail-layout">
+                <!-- Image Gallery -->
+                <div class="detail-gallery">
+                    <div class="main-image-container">
+                        <div class="emoji-placeholder large-emoji" id="detail-main-img">🧥</div>
+                    </div>
+                    <div class="thumbnail-row" id="detail-thumbnails">
+                        <!-- Thumbnails injected here -->
+                    </div>
                 </div>
-                <div class="thumbnail-container" id="detail-thumbnails">
-                    <!-- Thumbnails injected here -->
+
+                <!-- Product Info -->
+                <div class="detail-info">
+                    <p class="product-brand" id="detail-category">Category</p>
+                    <h1 class="detail-title" id="detail-title">Product Name</h1>
+                    <p class="detail-price" id="detail-price">$0.00</p>
+                    <p class="detail-description">Experience premium quality and timeless design. This piece is crafted for maximum comfort and style, perfect for any occasion.</p>
+                    
+                    <button class="add-to-cart-btn" onclick="addToCart()">
+                        Add to Cart <i class="fas fa-shopping-bag"></i>
+                    </button>
+                    
+                    <div class="shipping-info">
+                        <p><i class="fas fa-truck"></i> Free shipping on orders over $150</p>
+                        <p><i class="fas fa-undo"></i> 30-day return policy</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Product Info & Actions -->
-            <div class="product-details">
-                <p class="detail-category" id="detail-category">Category</p>
-                <h1 class="detail-title" id="detail-title">Product Name</h1>
-                <p class="detail-price" id="detail-price">$0.00</p>
-                
-                <button class="add-to-cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
-                
-                <div class="detail-description">
-                    <h3>Description</h3>
-                    <p>Premium quality material with excellent craftsmanship. Designed for comfort and modern aesthetic. Perfect for any occasion.</p>
-                </div>
-            </div>
-
-            <!-- Related Products (Same Category) -->
+            <!-- Related Products Section -->
             <div class="related-section">
-                <h2>Similar in <span id="related-category-name">Category</span></h2>
-                <div class="compact-scroll-grid" id="related-grid"></div>
+                <h2>More in <span id="related-category-name">This Category</span></h2>
+                <div class="product-grid" id="related-grid-same"></div>
             </div>
 
-            <!-- Other Categories -->
+            <!-- Other Categories Section -->
             <div class="related-section">
                 <h2>You Might Also Like</h2>
-                <div class="compact-scroll-grid" id="others-grid"></div>
+                <div class="product-grid" id="related-grid-other"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Professional Footer -->
+    <footer class="store-footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h2>LUXE.</h2>
+                <p>Curated fashion for the modern aesthetic.</p>
+            </div>
+            <div class="footer-links">
+                <h3>Customer Care</h3>
+                <a href="#">Contact Us</a>
+                <a href="#">Shipping & Returns</a>
+                <a href="#">Size Guide</a>
+            </div>
+            <div class="footer-social">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <i class="fab fa-instagram"></i>
+                    <i class="fab fa-facebook-f"></i>
+                </div>
             </div>
         </div>
-    </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Luxe Fashion. All rights reserved.</p>
+        </div>
+    </footer>
 
     <script src="script.js"></script>
 </body>
