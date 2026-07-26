@@ -14,26 +14,17 @@
     <!-- Sticky Navigation -->
     <nav class="navbar">
         <div class="nav-container">
+            <div class="nav-icon"><i class="fas fa-bars"></i></div>
             <div class="logo">LUXE.</div>
             <div class="nav-icons">
                 <i class="fas fa-search"></i>
-                <i class="fas fa-user"></i>
                 <i class="fas fa-shopping-bag"></i>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <header class="hero">
-        <div class="hero-content">
-            <h1>The New Collection</h1>
-            <p>Elevate your everyday style with our latest arrivals.</p>
-        </div>
-    </header>
-
     <!-- Main Storefront -->
     <main class="store-container">
-        
         <!-- Dynamic Category Filters -->
         <div class="filter-bar" id="filter-bar">
             <button class="filter-btn active" onclick="filterProducts('All')">All</button>
@@ -43,39 +34,59 @@
             <button class="filter-btn" onclick="filterProducts('Accessories')">Accessories</button>
         </div>
 
-        <!-- Product Grid -->
+        <!-- Compact Product Grid -->
         <div class="product-grid" id="product-grid">
-            <!-- Products will be injected here by JavaScript -->
+            <!-- Products injected here -->
         </div>
-
     </main>
 
-    <!-- Professional Footer -->
-    <footer class="store-footer">
-        <div class="footer-grid">
-            <div class="footer-brand">
-                <h2>LUXE.</h2>
-                <p>Curated fashion for the modern aesthetic.</p>
-            </div>
-            <div class="footer-links">
-                <h3>Customer Care</h3>
-                <a href="#">Contact Us</a>
-                <a href="#">Shipping & Returns</a>
-                <a href="#">Size Guide</a>
-            </div>
-            <div class="footer-social">
-                <h3>Follow Us</h3>
-                <div class="social-icons">
-                    <i class="fab fa-instagram"></i>
-                    <i class="fab fa-facebook-f"></i>
-                    <i class="fab fa-pinterest"></i>
+    <!-- FULL SCREEN PRODUCT PAGE (Hidden by default) -->
+    <div id="product-page" class="product-page-overlay">
+        <!-- Sticky Header for Product Page -->
+        <div class="product-page-header">
+            <button class="back-btn" onclick="closeProductPage()"><i class="fas fa-arrow-left"></i> Back</button>
+            <div class="logo" style="font-size: 1.2rem;">LUXE.</div>
+            <i class="fas fa-shopping-bag"></i>
+        </div>
+
+        <div class="product-page-content">
+            <!-- 3-Angle Gallery -->
+            <div class="product-gallery">
+                <div class="main-image-container" id="detail-main-img">
+                    <!-- Main Emoji -->
+                </div>
+                <div class="thumbnail-container" id="detail-thumbnails">
+                    <!-- Thumbnails injected here -->
                 </div>
             </div>
+
+            <!-- Product Info & Actions -->
+            <div class="product-details">
+                <p class="detail-category" id="detail-category">Category</p>
+                <h1 class="detail-title" id="detail-title">Product Name</h1>
+                <p class="detail-price" id="detail-price">$0.00</p>
+                
+                <button class="add-to-cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+                
+                <div class="detail-description">
+                    <h3>Description</h3>
+                    <p>Premium quality material with excellent craftsmanship. Designed for comfort and modern aesthetic. Perfect for any occasion.</p>
+                </div>
+            </div>
+
+            <!-- Related Products (Same Category) -->
+            <div class="related-section">
+                <h2>Similar in <span id="related-category-name">Category</span></h2>
+                <div class="compact-scroll-grid" id="related-grid"></div>
+            </div>
+
+            <!-- Other Categories -->
+            <div class="related-section">
+                <h2>You Might Also Like</h2>
+                <div class="compact-scroll-grid" id="others-grid"></div>
+            </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 Luxe Fashion. All rights reserved.</p>
-        </div>
-    </footer>
+    </div>
 
     <script src="script.js"></script>
 </body>
