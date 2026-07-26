@@ -15,8 +15,8 @@
         <div class="nav-container">
             <div class="logo" onclick="closeAllViews()">LUXE.</div>
             <div class="nav-icons">
-                <i class="fas fa-search"></i>
-                <i class="fas fa-user"></i>
+                <i class="fas fa-search" onclick="toggleSearch()"></i>
+                <i class="fas fa-user" onclick="alert('Welcome! Customer Accounts & Order History will be available soon.')"></i>
                 <div class="cart-icon-wrapper" onclick="openCart()">
                     <i class="fas fa-shopping-bag"></i>
                     <span class="cart-count" id="cart-count-badge">0</span>
@@ -24,6 +24,12 @@
             </div>
         </div>
     </nav>
+
+    <!-- Search Bar Dropdown -->
+    <div class="search-bar-container" id="search-bar" style="display: none;">
+        <input type="text" id="search-input" onkeyup="searchProducts()" placeholder="Search for products, categories...">
+        <i class="fas fa-times" onclick="toggleSearch()"></i>
+    </div>
 
     <!-- === CATALOG VIEW === -->
     <div id="catalog-view">
@@ -71,7 +77,6 @@
                         <button onclick="changeQty(1)">+</button>
                     </div>
                     
-                    <!-- Hidden input to store product ID for the cart -->
                     <input type="hidden" id="current-product-id">
 
                     <button class="add-to-cart-btn" onclick="addToCart()">
@@ -84,6 +89,16 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Related Products moved directly below Add-to-Cart section -->
+            <div class="related-section">
+                <h2>More in <span id="related-category-name">This Category</span></h2>
+                <div class="product-grid" id="related-grid-same"></div>
+            </div>
+            <div class="related-section">
+                <h2>You Might Also Like</h2>
+                <div class="product-grid" id="related-grid-other"></div>
+            </div>
         </main>
     </div>
 
@@ -95,45 +110,27 @@
             </button>
 
             <div class="cart-layout">
-                <!-- Cart Items Section -->
                 <div class="cart-items-section">
                     <h2>Your Bag</h2>
-                    <div id="cart-items-container">
-                        <!-- Cart items injected here -->
-                    </div>
+                    <div id="cart-items-container"></div>
                     <div class="cart-total">
                         <span>Total:</span>
                         <span id="cart-total-price">$0.00</span>
                     </div>
                 </div>
 
-                <!-- Checkout Form Section -->
                 <div class="checkout-section">
                     <h2>Checkout Details</h2>
                     <form id="checkout-form">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="cust-name" placeholder="John Doe" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Contact Number</label>
-                            <input type="tel" id="cust-phone" placeholder="09xxxxxxxxx" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Delivery Location (Full Address)</label>
-                            <textarea id="cust-address" rows="3" placeholder="Apt, Street, Township, City" required></textarea>
-                        </div>
+                        <div class="form-group"><label>Full Name</label><input type="text" id="cust-name" required></div>
+                        <div class="form-group"><label>Contact Number</label><input type="tel" id="cust-phone" required></div>
+                        <div class="form-group"><label>Delivery Location</label><textarea id="cust-address" rows="3" required></textarea></div>
                     </form>
 
                     <div class="checkout-actions">
                         <p class="action-title">Place Order Via:</p>
-                        <button class="checkout-btn telegram-btn" onclick="processCheckout('telegram')">
-                            <i class="fab fa-telegram-plane"></i> Send to Telegram
-                        </button>
-                        <button class="checkout-btn viber-btn" onclick="processCheckout('viber')">
-                            <i class="fab fa-viber"></i> Send to Viber
-                        </button>
-                        
+                        <button class="checkout-btn telegram-btn" onclick="processCheckout('telegram')"><i class="fab fa-telegram-plane"></i> Send to Telegram</button>
+                        <button class="checkout-btn viber-btn" onclick="processCheckout('viber')"><i class="fab fa-viber"></i> Send to Viber</button>
                         <div class="manual-call">
                             <p>Or order manually by calling:</p>
                             <a href="tel:+959793155856" class="call-btn"><i class="fas fa-phone-alt"></i> 09793155856</a>
@@ -144,8 +141,48 @@
         </main>
     </div>
 
+    <!-- Infinite Image Carousel (Always visible above footer) -->
+    <div class="model-carousel">
+        <div class="model-track">
+            <!-- Set 1 -->
+            <div class="model-item">💃</div>
+            <div class="model-item">🕺</div>
+            <div class="model-item">🧍‍♀️</div>
+            <div class="model-item">🧍‍♂️</div>
+            <div class="model-item">🚶‍♀️</div>
+            <div class="model-item">🚶‍♂️</div>
+            <!-- Set 2 (Duplicated exactly for a seamless infinite loop) -->
+            <div class="model-item">💃</div>
+            <div class="model-item">🕺</div>
+            <div class="model-item">🧍‍♀️</div>
+            <div class="model-item">🧍‍♂️</div>
+            <div class="model-item">🚶‍♀️</div>
+            <div class="model-item">🚶‍♂️</div>
+        </div>
+    </div>
+
     <!-- Professional Footer -->
     <footer class="store-footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h2>LUXE.</h2>
+                <p>Curated fashion for the modern aesthetic.</p>
+            </div>
+            <div class="footer-links">
+                <h3>Customer Care</h3>
+                <a href="#">Contact Us</a>
+                <a href="#">Shipping & Returns</a>
+                <a href="#">Size Guide</a>
+            </div>
+            <div class="footer-social">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
         <div class="footer-bottom">
             <p>&copy; 2026 Luxe Fashion. All rights reserved.</p>
         </div>
