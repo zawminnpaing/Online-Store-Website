@@ -1,4 +1,7 @@
-// 1. Mock Database (Prices are now numbers instead of strings for calculation)
+// ==========================================
+// 1. DATABASE (READY FOR 11 PM GOOGLE SHEETS)
+// ==========================================
+// We will delete this block tonight and replace it with PapaParse to fetch your live Google Sheet.
 const mockProducts = [
     { id: 1, category: "Outerwear", name: "Classic Trench", price: 145.00, images: ["🧥", "🧥", "🧣"] },
     { id: 2, category: "Outerwear", name: "Leather Moto", price: 210.00, images: ["🕴️", "🕴️", "🕶️"] },
@@ -18,24 +21,20 @@ const mockProducts = [
     { id: 16, category: "Accessories", name: "Canvas Bag", price: 45.00, images: ["🛍️", "🎒", "🌴"] }
 ];
 
-// UI Variables
+// ==========================================
+// 2. CORE STORE LOGIC
+// ==========================================
 const catalogView = document.getElementById('catalog-view');
 const productView = document.getElementById('product-view');
 const cartView = document.getElementById('cart-view');
 const mainGrid = document.getElementById('product-grid');
-
-// Store Settings
-const STORE_PHONE = "959793155856"; // Your store number with country code
-
-// Cart State (The customer's personal temporary memory)
+const STORE_PHONE = "959793155856"; 
 let shoppingCart = [];
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     renderGrid(mockProducts, mainGrid);
 });
 
-// Render Grid
 function renderGrid(productsArray, container) {
     container.innerHTML = ''; 
     productsArray.forEach(product => {
@@ -54,20 +53,37 @@ function renderGrid(productsArray, container) {
     });
 }
 
-// Category Filter
-function filterProducts(category) {
-    const buttons = document.querySelectorAll('.filter-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-
-    if (category === 'All') {
-        renderGrid(mockProducts, mainGrid);
-    } else {
-        renderGrid(mockProducts.filter(p => p.category === category), mainGrid);
+// === SEARCH LOGIC ===
+function toggleSearch() {
+    const searchBar = document.getElementById('search-bar');
+    searchBar.style.display = searchBar.style.display === 'flex' ? 'none' : 'flex';
+    if(searchBar.style.display === 'flex') {
+        document.getElementById('search-input').focus();
     }
 }
 
-// === VIEW MANAGEMENT ===
+function searchProducts() {
+    const query = document.getElementById('search-input').value.toLowerCase();
+    const filtered = mockProducts.filter(p => 
+        p.name.toLowerCase().includes(query) || 
+        p.category.toLowerCase().includes(query)
+    );
+    
+    if(catalogView.style.display === 'none') {
+        closeAllViews(); 
+    }
+    
+    renderGrid(filtered, mainGrid);
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+}
+
+// === CATEGORY FILTER ===
+function filterProducts(category) {
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    renderGrid(category === 'All' ? mockProducts : mockProducts.filter(p => p.category === category), mainGrid);
+}
+
 function closeAllViews() {
     productView.style.display = 'none';
     cartView.style.display = 'none';
@@ -75,7 +91,7 @@ function closeAllViews() {
     window.scrollTo(0, 0);
 }
 
-// === PRODUCT DETAIL LOGIC ===
+// === PRODUCT DETAIL VIEW ===
 function openProduct(productId) {
     const product = mockProducts.find(p => p.id === productId);
     if (!product) return;
@@ -84,11 +100,9 @@ function openProduct(productId) {
     document.getElementById('detail-category').innerText = product.category;
     document.getElementById('detail-title').innerText = product.name;
     document.getElementById('detail-price').innerText = `$${product.price.toFixed(2)}`;
-    
-    // Reset Quantity to 1
     document.getElementById('item-qty').value = 1;
 
-    // Set Gallery
+    // Gallery
     const mainImg = document.getElementById('detail-main-img');
     const thumbContainer = document.getElementById('detail-thumbnails');
     mainImg.innerText = product.images[0];
@@ -106,73 +120,61 @@ function openProduct(productId) {
         thumbContainer.appendChild(thumb);
     });
 
+    // Populate Related Sections
+    document.getElementById('related-category-name').innerText = product.category;
+    const sameCategory = mockProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+    renderGrid(sameCategory, document.getElementById('related-grid-same'));
+
+    const otherCategories = mockProducts.filter(p => p.category !== product.category).sort(() => 0.5 - Math.random()).slice(0, 4);
+    renderGrid(otherCategories, document.getElementById('related-grid-other'));
+
     catalogView.style.display = 'none';
     cartView.style.display = 'none';
     productView.style.display = 'block';
     window.scrollTo(0, 0);
 }
 
-// Quantity Buttons
+// === CART LOGIC ===
 function changeQty(amount) {
     const qtyInput = document.getElementById('item-qty');
-    let currentVal = parseInt(qtyInput.value);
-    let newVal = currentVal + amount;
-    if (newVal >= 1) {
-        qtyInput.value = newVal;
-    }
+    let newVal = parseInt(qtyInput.value) + amount;
+    if (newVal >= 1) qtyInput.value = newVal;
 }
 
-// === CART LOGIC ===
 function addToCart() {
     const productId = parseInt(document.getElementById('current-product-id').value);
     const quantity = parseInt(document.getElementById('item-qty').value);
     const product = mockProducts.find(p => p.id === productId);
-
-    // Check if item is already in cart
     const existingItem = shoppingCart.find(item => item.id === productId);
-    if (existingItem) {
-        existingItem.quantity += quantity; // Add to existing quantity
-    } else {
-        shoppingCart.push({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            quantity: quantity
-        });
-    }
+    
+    if (existingItem) existingItem.quantity += quantity;
+    else shoppingCart.push({ id: product.id, name: product.name, price: product.price, quantity: quantity });
 
     updateCartBadge();
     
-    // Visual Feedback
     const btn = document.querySelector('.add-to-cart-btn');
     const originalText = btn.innerHTML;
     btn.innerHTML = 'Added! <i class="fas fa-check"></i>';
     btn.style.background = '#4CAF50';
-    setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.style.background = 'var(--accent)';
-    }, 1500);
+    setTimeout(() => { btn.innerHTML = originalText; btn.style.background = 'var(--accent)'; }, 1500);
 }
 
 function updateCartBadge() {
-    // Calculate total number of items
-    const totalItems = shoppingCart.reduce((sum, item) => sum + item.quantity, 0);
-    document.getElementById('cart-count-badge').innerText = totalItems;
+    document.getElementById('cart-count-badge').innerText = shoppingCart.reduce((sum, item) => sum + item.quantity, 0);
 }
 
-function removeFromCart(productId) {
-    shoppingCart = shoppingCart.filter(item => item.id !== productId);
-    updateCartBadge();
-    renderCart(); // Refresh cart view
-}
-
-// === CHECKOUT VIEW LOGIC ===
 function openCart() {
     renderCart();
     catalogView.style.display = 'none';
     productView.style.display = 'none';
     cartView.style.display = 'block';
     window.scrollTo(0, 0);
+}
+
+function removeFromCart(productId) {
+    shoppingCart = shoppingCart.filter(item => item.id !== productId);
+    updateCartBadge();
+    renderCart();
 }
 
 function renderCart() {
@@ -187,12 +189,10 @@ function renderCart() {
     }
 
     let grandTotal = 0;
-
     shoppingCart.forEach(item => {
         const itemTotal = item.price * item.quantity;
         grandTotal += itemTotal;
-
-        const cartItemHTML = `
+        container.innerHTML += `
             <div class="cart-item">
                 <div class="cart-item-info">
                     <h4>${item.name}</h4>
@@ -202,64 +202,36 @@ function renderCart() {
                 <div class="cart-item-price">
                     <strong>$${itemTotal.toFixed(2)}</strong>
                 </div>
-            </div>
-        `;
-        container.innerHTML += cartItemHTML;
+            </div>`;
     });
-
     totalDisplay.innerText = `$${grandTotal.toFixed(2)}`;
 }
 
-// === MESSAGE GENERATION & DEEP LINKING ===
+// === CHECKOUT / MESSAGING ===
 function processCheckout(platform) {
-    // 1. Validate Form & Cart
-    if (shoppingCart.length === 0) {
-        alert("Your cart is empty!");
-        return;
-    }
+    if (shoppingCart.length === 0) return alert("Your cart is empty!");
 
     const name = document.getElementById('cust-name').value.trim();
     const phone = document.getElementById('cust-phone').value.trim();
     const address = document.getElementById('cust-address').value.trim();
 
-    if (!name || !phone || !address) {
-        alert("Please fill out all delivery details.");
-        return;
-    }
+    if (!name || !phone || !address) return alert("Please fill out all delivery details.");
 
-    // 2. Generate a random 4-digit Order ID
     const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
-
-    // 3. Calculate total
     let grandTotal = 0;
     let itemsText = "";
+    
     shoppingCart.forEach(item => {
         grandTotal += (item.price * item.quantity);
         itemsText += `- ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toFixed(2)})\n`;
     });
 
-    // 4. Build the message block
-    const orderMessage = 
-`🛍️ NEW ORDER: #${orderId}
-
-🛒 ITEMS:
-${itemsText}
-💰 TOTAL: $${grandTotal.toFixed(2)}
-
-👤 CUSTOMER DETAILS:
-Name: ${name}
-Phone: ${phone}
-Address: ${address}`;
-
-    // 5. Encode the text so the browser can send it in a URL safely
+    const orderMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${itemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
     const encodedMessage = encodeURIComponent(orderMessage);
 
-    // 6. Open the respective app
     if (platform === 'telegram') {
-        // Opens Telegram app directly to the number with pre-filled text
         window.open(`https://t.me/+${STORE_PHONE}?text=${encodedMessage}`, '_blank');
     } else if (platform === 'viber') {
-        // Opens Viber app directly (Works universally on mobile)
         window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_blank');
     }
 }
