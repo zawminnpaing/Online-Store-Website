@@ -1,7 +1,6 @@
 // ==========================================
 // 1. DATABASE (READY FOR 11 PM GOOGLE SHEETS)
 // ==========================================
-// We will delete this block tonight and replace it with PapaParse to fetch your live Google Sheet.
 const mockProducts = [
     { id: 1, category: "Outerwear", name: "Classic Trench", price: 145.00, images: ["🧥", "🧥", "🧣"] },
     { id: 2, category: "Outerwear", name: "Leather Moto", price: 210.00, images: ["🕴️", "🕴️", "🕶️"] },
@@ -32,7 +31,16 @@ const STORE_PHONE = "959793155856";
 let shoppingCart = [];
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Main Products
     renderGrid(mockProducts, mainGrid);
+    
+    // Newly Arrived (Grabs the last 4 items in the array)
+    const newArrivals = [...mockProducts].reverse().slice(0, 4);
+    renderGrid(newArrivals, document.getElementById('new-arrivals-grid'));
+
+    // Trending Now (Grabs 4 random items)
+    const trending = [...mockProducts].sort(() => 0.5 - Math.random()).slice(0, 4);
+    renderGrid(trending, document.getElementById('trending-grid'));
 });
 
 function renderGrid(productsArray, container) {
@@ -56,14 +64,29 @@ function renderGrid(productsArray, container) {
 // === SEARCH LOGIC ===
 function toggleSearch() {
     const searchBar = document.getElementById('search-bar');
-    searchBar.style.display = searchBar.style.display === 'flex' ? 'none' : 'flex';
+    const searchInput = document.getElementById('search-input');
+    
     if(searchBar.style.display === 'flex') {
-        document.getElementById('search-input').focus();
+        searchBar.style.display = 'none';
+        searchInput.value = '';
+        // Restore hero and extra sections when closing search
+        document.getElementById('main-hero').style.display = 'block';
+        document.getElementById('home-extra-sections').style.display = 'block';
+        filterProducts('All');
+    } else {
+        searchBar.style.display = 'flex';
+        searchInput.focus();
+        window.scrollTo(0, 0);
     }
 }
 
 function searchProducts() {
     const query = document.getElementById('search-input').value.toLowerCase();
+    
+    // Instantly hide the hero banner and extra sections so results are at the top
+    document.getElementById('main-hero').style.display = 'none';
+    document.getElementById('home-extra-sections').style.display = 'none';
+
     const filtered = mockProducts.filter(p => 
         p.name.toLowerCase().includes(query) || 
         p.category.toLowerCase().includes(query)
@@ -71,6 +94,8 @@ function searchProducts() {
     
     if(catalogView.style.display === 'none') {
         closeAllViews(); 
+        document.getElementById('main-hero').style.display = 'none';
+        document.getElementById('home-extra-sections').style.display = 'none';
     }
     
     renderGrid(filtered, mainGrid);
@@ -81,13 +106,21 @@ function searchProducts() {
 function filterProducts(category) {
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
+    
+    // Ensure hero and extra sections are visible when clicking standard filters
+    document.getElementById('main-hero').style.display = 'block';
+    document.getElementById('home-extra-sections').style.display = 'block';
+
     renderGrid(category === 'All' ? mockProducts : mockProducts.filter(p => p.category === category), mainGrid);
 }
 
+// === VIEW MANAGEMENT ===
 function closeAllViews() {
     productView.style.display = 'none';
     cartView.style.display = 'none';
     catalogView.style.display = 'block';
+    document.getElementById('main-hero').style.display = 'block';
+    document.getElementById('home-extra-sections').style.display = 'block';
     window.scrollTo(0, 0);
 }
 
@@ -165,6 +198,11 @@ function updateCartBadge() {
 
 function openCart() {
     renderCart();
+    
+    // Populate Recommended items on the checkout page (4 random items)
+    const cartRecommended = [...mockProducts].sort(() => 0.5 - Math.random()).slice(0, 4);
+    renderGrid(cartRecommended, document.getElementById('cart-recommended-grid'));
+
     catalogView.style.display = 'none';
     productView.style.display = 'none';
     cartView.style.display = 'block';
