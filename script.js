@@ -1,17 +1,18 @@
 // ==========================================
 // 1. DATABASE (READY FOR 11 PM GOOGLE SHEETS)
 // ==========================================
+// Note: I added a 'badge' property to a few items for testing.
 const mockProducts = [
-    { id: 1, category: "Outerwear", name: "Classic Trench", price: 145.00, images: ["🧥", "🧥", "🧣"] },
+    { id: 1, category: "Outerwear", name: "Classic Trench", price: 145.00, images: ["🧥", "🧥", "🧣"], badge: "NEW" },
     { id: 2, category: "Outerwear", name: "Leather Moto", price: 210.00, images: ["🕴️", "🕴️", "🕶️"] },
     { id: 3, category: "Outerwear", name: "Tailored Blazer", price: 180.00, images: ["🥼", "🥼", "👔"] },
-    { id: 4, category: "Outerwear", name: "Winter Puffer", price: 195.00, images: ["🧥", "🏂", "❄️"] },
+    { id: 4, category: "Outerwear", name: "Winter Puffer", price: 195.00, images: ["🧥", "🏂", "❄️"], badge: "TRENDING", badgeClass: "badge-hot" },
     { id: 5, category: "Tops", name: "Silk Blouse", price: 85.00, images: ["👚", "👚", "✨"] },
-    { id: 6, category: "Tops", name: "Essential T-Shirt", price: 35.00, images: ["👕", "👕", "👖"] },
+    { id: 6, category: "Tops", name: "Essential T-Shirt", price: 35.00, images: ["👕", "👕", "👖"], badge: "BEST SELLER" },
     { id: 7, category: "Tops", name: "Oxford Shirt", price: 65.00, images: ["👔", "👔", "💼"] },
     { id: 8, category: "Tops", name: "Ribbed Tank", price: 40.00, images: ["🎽", "🎽", "🏃"] },
     { id: 9, category: "Bottoms", name: "High-Rise Denim", price: 90.00, images: ["👖", "👖", "👟"] },
-    { id: 10, category: "Bottoms", name: "Pleated Trousers", price: 110.00, images: ["👖", "🕴️", "👞"] },
+    { id: 10, category: "Bottoms", name: "Pleated Trousers", price: 110.00, images: ["👖", "🕴️", "👞"], badge: "LIMITED", badgeClass: "badge-hot" },
     { id: 11, category: "Bottoms", name: "Linen Shorts", price: 55.00, images: ["🩳", "🩳", "🏖️"] },
     { id: 12, category: "Bottoms", name: "Midi Slip Skirt", price: 75.00, images: ["👗", "👗", "👠"] },
     { id: 13, category: "Accessories", name: "Leather Tote", price: 150.00, images: ["👜", "👝", "💼"] },
@@ -31,25 +32,55 @@ const STORE_PHONE = "959793155856";
 let shoppingCart = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Main Products
-    renderGrid(mockProducts, mainGrid);
+    // We simulate an 800ms "network delay" so you can see the premium Skeleton Loaders
+    simulateNetworkLoad(mockProducts, mainGrid);
     
-    // Newly Arrived (Grabs the last 4 items in the array)
     const newArrivals = [...mockProducts].reverse().slice(0, 4);
-    renderGrid(newArrivals, document.getElementById('new-arrivals-grid'));
+    simulateNetworkLoad(newArrivals, document.getElementById('new-arrivals-grid'));
 
-    // Trending Now (Grabs 4 random items)
     const trending = [...mockProducts].sort(() => 0.5 - Math.random()).slice(0, 4);
-    renderGrid(trending, document.getElementById('trending-grid'));
+    simulateNetworkLoad(trending, document.getElementById('trending-grid'));
 });
 
+// SKELETON LOADER LOGIC
+function renderSkeletons(container, count = 8) {
+    container.innerHTML = '';
+    for(let i=0; i<count; i++) {
+        container.innerHTML += `
+            <div class="skeleton-card">
+                <div class="skeleton-box skeleton-img"></div>
+                <div class="skeleton-box skeleton-text"></div>
+                <div class="skeleton-box skeleton-text skeleton-title"></div>
+                <div class="skeleton-box skeleton-text"></div>
+            </div>
+        `;
+    }
+}
+
+function simulateNetworkLoad(productsArray, container) {
+    renderSkeletons(container, productsArray.length > 4 ? 8 : 4);
+    setTimeout(() => {
+        renderGrid(productsArray, container);
+    }, 800); // 800 milliseconds delay
+}
+
+// RENDERING CARDS
 function renderGrid(productsArray, container) {
     container.innerHTML = ''; 
     productsArray.forEach(product => {
         const card = document.createElement('div');
         card.className = 'product-card';
         card.onclick = () => openProduct(product.id);
+        
+        // Check if item has a badge
+        let badgeHTML = '';
+        if (product.badge) {
+            const badgeClass = product.badgeClass ? product.badgeClass : '';
+            badgeHTML = `<span class="product-badge ${badgeClass}">${product.badge}</span>`;
+        }
+
         card.innerHTML = `
+            ${badgeHTML}
             <div class="emoji-placeholder">${product.images[0]}</div>
             <div class="product-info">
                 <p class="product-brand">${product.category}</p>
@@ -61,7 +92,7 @@ function renderGrid(productsArray, container) {
     });
 }
 
-// === SEARCH LOGIC ===
+// === SEARCH & FILTERS ===
 function toggleSearch() {
     const searchBar = document.getElementById('search-bar');
     const searchInput = document.getElementById('search-input');
@@ -69,7 +100,6 @@ function toggleSearch() {
     if(searchBar.style.display === 'flex') {
         searchBar.style.display = 'none';
         searchInput.value = '';
-        // Restore hero and extra sections when closing search
         document.getElementById('main-hero').style.display = 'block';
         document.getElementById('home-extra-sections').style.display = 'block';
         filterProducts('All');
@@ -82,15 +112,10 @@ function toggleSearch() {
 
 function searchProducts() {
     const query = document.getElementById('search-input').value.toLowerCase();
-    
-    // Instantly hide the hero banner and extra sections so results are at the top
     document.getElementById('main-hero').style.display = 'none';
     document.getElementById('home-extra-sections').style.display = 'none';
 
-    const filtered = mockProducts.filter(p => 
-        p.name.toLowerCase().includes(query) || 
-        p.category.toLowerCase().includes(query)
-    );
+    const filtered = mockProducts.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
     
     if(catalogView.style.display === 'none') {
         closeAllViews(); 
@@ -102,16 +127,14 @@ function searchProducts() {
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
 }
 
-// === CATEGORY FILTER ===
 function filterProducts(category) {
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
-    
-    // Ensure hero and extra sections are visible when clicking standard filters
     document.getElementById('main-hero').style.display = 'block';
     document.getElementById('home-extra-sections').style.display = 'block';
-
-    renderGrid(category === 'All' ? mockProducts : mockProducts.filter(p => p.category === category), mainGrid);
+    
+    // Using simulated load so the skeleton flashes when filtering
+    simulateNetworkLoad(category === 'All' ? mockProducts : mockProducts.filter(p => p.category === category), mainGrid);
 }
 
 // === VIEW MANAGEMENT ===
@@ -135,7 +158,6 @@ function openProduct(productId) {
     document.getElementById('detail-price').innerText = `$${product.price.toFixed(2)}`;
     document.getElementById('item-qty').value = 1;
 
-    // Gallery
     const mainImg = document.getElementById('detail-main-img');
     const thumbContainer = document.getElementById('detail-thumbnails');
     mainImg.innerText = product.images[0];
@@ -153,13 +175,9 @@ function openProduct(productId) {
         thumbContainer.appendChild(thumb);
     });
 
-    // Populate Related Sections
     document.getElementById('related-category-name').innerText = product.category;
-    const sameCategory = mockProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
-    renderGrid(sameCategory, document.getElementById('related-grid-same'));
-
-    const otherCategories = mockProducts.filter(p => p.category !== product.category).sort(() => 0.5 - Math.random()).slice(0, 4);
-    renderGrid(otherCategories, document.getElementById('related-grid-other'));
+    renderGrid(mockProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4), document.getElementById('related-grid-same'));
+    renderGrid(mockProducts.filter(p => p.category !== product.category).sort(() => 0.5 - Math.random()).slice(0, 4), document.getElementById('related-grid-other'));
 
     catalogView.style.display = 'none';
     cartView.style.display = 'none';
@@ -193,16 +211,18 @@ function addToCart() {
 }
 
 function updateCartBadge() {
-    document.getElementById('cart-count-badge').innerText = shoppingCart.reduce((sum, item) => sum + item.quantity, 0);
+    const badge = document.getElementById('cart-count-badge');
+    badge.innerText = shoppingCart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    // Add cart bump animation
+    badge.classList.remove('bump');
+    void badge.offsetWidth; // Trigger DOM reflow to restart animation
+    badge.classList.add('bump');
 }
 
 function openCart() {
     renderCart();
-    
-    // Populate Recommended items on the checkout page (4 random items)
-    const cartRecommended = [...mockProducts].sort(() => 0.5 - Math.random()).slice(0, 4);
-    renderGrid(cartRecommended, document.getElementById('cart-recommended-grid'));
-
+    renderGrid([...mockProducts].sort(() => 0.5 - Math.random()).slice(0, 4), document.getElementById('cart-recommended-grid'));
     catalogView.style.display = 'none';
     productView.style.display = 'none';
     cartView.style.display = 'block';
@@ -255,6 +275,14 @@ function processCheckout(platform) {
 
     if (!name || !phone || !address) return alert("Please fill out all delivery details.");
 
+    // Fire Confetti!
+    confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#000000', '#ffffff', '#717171']
+    });
+
     const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
     let grandTotal = 0;
     let itemsText = "";
@@ -267,9 +295,12 @@ function processCheckout(platform) {
     const orderMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${itemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
     const encodedMessage = encodeURIComponent(orderMessage);
 
-    if (platform === 'telegram') {
-        window.open(`https://t.me/+${STORE_PHONE}?text=${encodedMessage}`, '_blank');
-    } else if (platform === 'viber') {
-        window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_blank');
-    }
+    // Wait slightly so they can see the confetti before opening the app
+    setTimeout(() => {
+        if (platform === 'telegram') {
+            window.open(`https://t.me/+${STORE_PHONE}?text=${encodedMessage}`, '_blank');
+        } else if (platform === 'viber') {
+            window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_blank');
+        }
+    }, 800);
 }
