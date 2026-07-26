@@ -22,31 +22,23 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
 .nav-icons i { font-size: 1.2rem; cursor: pointer; color: var(--text-dark); transition: var(--transition); }
 .nav-icons i:hover { color: var(--text-light); }
 .cart-icon-wrapper { position: relative; cursor: pointer; }
-.cart-count { position: absolute; top: -8px; right: -10px; background: var(--accent); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 50%; }
+.cart-count { position: absolute; top: -8px; right: -10px; background: var(--accent); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 50%; transition: transform 0.2s ease; }
+
+/* Cart Bump Animation */
+@keyframes cartBump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.5); }
+    100% { transform: scale(1); }
+}
+.bump { animation: cartBump 0.3s ease-out; }
 
 .search-bar-container { background: var(--bg-color); padding: 1rem 1.5rem; border-bottom: 1px solid #eaeaea; display: flex; justify-content: center; align-items: center; gap: 1rem; position: sticky; top: 65px; z-index: 999; }
 .search-bar-container input { width: 100%; max-width: 600px; padding: 0.8rem 1rem; border: 1px solid #ccc; border-radius: 20px; font-size: 1rem; font-family: 'Inter', sans-serif; outline: none; }
 
-/* Hero Banner (Adjusted height for Mobile) */
-.hero { 
-    position: relative;
-    background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop'); 
-    background-size: cover;
-    background-position: center;
-    padding: 4rem 1.5rem; /* Shorter for mobile */
-    text-align: center; 
-    color: #ffffff;
-}
-@media (min-width: 768px) {
-    .hero { padding: 8rem 1.5rem; } /* Taller for desktop */
-}
-.hero::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.5); 
-    z-index: 1;
-}
+/* Hero Banner */
+.hero { position: relative; background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; padding: 4rem 1.5rem; text-align: center; color: #ffffff; }
+@media (min-width: 768px) { .hero { padding: 8rem 1.5rem; } }
+.hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1; }
 .hero-content { position: relative; z-index: 2; }
 .hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #ffffff;}
 .hero p { color: #f0f0f0; font-size: 1rem; }
@@ -60,14 +52,31 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
 .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; } }
 
-/* Product Card */
-.product-card { cursor: pointer; }
+/* === PREMIUM PRODUCT CARDS === */
+.product-card { cursor: pointer; position: relative; transition: var(--transition); border-radius: 12px; }
+/* Hover Lift and Shadow Effect */
+@media (min-width: 768px) {
+    .product-card:hover { transform: translateY(-8px); }
+    .product-card:hover .emoji-placeholder { box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+}
 .emoji-placeholder { background-color: var(--gray-bg); aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; font-size: 4rem; border-radius: 12px; transition: var(--transition); }
-.product-card:hover .emoji-placeholder { transform: scale(1.03); }
+
+/* Badges */
+.product-badge { position: absolute; top: 10px; left: 10px; background: var(--text-dark); color: white; font-size: 0.65rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 20px; z-index: 2; letter-spacing: 1px; text-transform: uppercase; }
+.badge-hot { background: #ff4444; } /* Red for trending/hot */
+
 .product-info { padding: 0.8rem 0; text-align: center; }
 .product-brand { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 0.2rem; }
 .product-title { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .product-price { font-weight: 600; font-size: 0.9rem; }
+
+/* === SKELETON LOADERS === */
+.skeleton-card { width: 100%; }
+.skeleton-box { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; }
+.skeleton-img { width: 100%; aspect-ratio: 3/4; margin-bottom: 0.8rem; }
+.skeleton-text { height: 1rem; width: 60%; margin: 0.3rem auto; border-radius: 4px; }
+.skeleton-title { width: 80%; height: 1.2rem; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* Detail View */
 .back-btn { background: none; border: none; font-size: 1rem; color: var(--text-light); cursor: pointer; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; }
@@ -108,15 +117,12 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
 .manual-call p { color: var(--text-light); font-size: 0.9rem; margin-bottom: 0.5rem; }
 .call-btn { display: inline-block; background: var(--gray-bg); color: var(--text-dark); text-decoration: none; padding: 0.8rem 1.5rem; border-radius: 20px; font-weight: 600; }
 
-/* === INFINITE MODEL CAROUSEL === */
+/* Infinite Model Carousel */
 .model-carousel { overflow: hidden; background: #ffffff; padding: 2rem 0; margin-top: 2rem; white-space: nowrap; position: relative; border-top: 1px solid #eaeaea; }
 .model-track { display: inline-block; animation: scroll 20s linear infinite; }
 .model-carousel:hover .model-track { animation-play-state: paused; }
 .model-item { display: inline-flex; align-items: center; justify-content: center; width: 150px; height: 200px; background: var(--gray-bg); margin: 0 1rem; font-size: 5rem; border-radius: 12px; }
-@keyframes scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); } 
-}
+@keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
 /* Footer */
 .store-footer { background-color: var(--text-dark); color: #ffffff; padding: 4rem 1.5rem 1.5rem; }
