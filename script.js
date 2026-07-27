@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchStoreData() {
-    // CACHE BUSTER: This forces the browser to pull fresh data from Google
     const cacheBuster = "&t=" + new Date().getTime();
 
     // Fetch Products
@@ -88,8 +87,21 @@ function renderGrid(productsArray, container) {
         
         let badgesHTML = '<div class="badge-container">';
         product.tags.forEach(tag => {
-            const isDiscount = tag.includes('%') || tag.toLowerCase().includes('off');
-            badgesHTML += `<span class="product-badge ${isDiscount ? 'badge-discount' : ''}">${tag}</span>`;
+            // Check the tag text and assign the matching color class
+            const lowerTag = tag.toLowerCase();
+            let badgeClass = 'badge-default'; 
+            
+            if (lowerTag.includes('%') || lowerTag.includes('off') || lowerTag.includes('sale')) {
+                badgeClass = 'badge-discount';
+            } else if (lowerTag.includes('new')) {
+                badgeClass = 'badge-new';
+            } else if (lowerTag.includes('trend')) {
+                badgeClass = 'badge-trending';
+            } else if (lowerTag.includes('limited')) {
+                badgeClass = 'badge-limited';
+            }
+
+            badgesHTML += `<span class="product-badge ${badgeClass}">${tag}</span>`;
         });
         badgesHTML += '</div>';
 
