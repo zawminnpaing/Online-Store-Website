@@ -1,48 +1,84 @@
 // ==========================================
-// 1. DATABASE (READY FOR 11 PM GOOGLE SHEETS)
+// 1. DATABASE CONNECTION (GOOGLE SHEETS)
 // ==========================================
-// Note: I added a 'badge' property to a few items for testing.
-const mockProducts = [
-    { id: 1, category: "Outerwear", name: "Classic Trench", price: 145.00, images: ["🧥", "🧥", "🧣"], badge: "NEW" },
-    { id: 2, category: "Outerwear", name: "Leather Moto", price: 210.00, images: ["🕴️", "🕴️", "🕶️"] },
-    { id: 3, category: "Outerwear", name: "Tailored Blazer", price: 180.00, images: ["🥼", "🥼", "👔"] },
-    { id: 4, category: "Outerwear", name: "Winter Puffer", price: 195.00, images: ["🧥", "🏂", "❄️"], badge: "TRENDING", badgeClass: "badge-hot" },
-    { id: 5, category: "Tops", name: "Silk Blouse", price: 85.00, images: ["👚", "👚", "✨"] },
-    { id: 6, category: "Tops", name: "Essential T-Shirt", price: 35.00, images: ["👕", "👕", "👖"], badge: "BEST SELLER" },
-    { id: 7, category: "Tops", name: "Oxford Shirt", price: 65.00, images: ["👔", "👔", "💼"] },
-    { id: 8, category: "Tops", name: "Ribbed Tank", price: 40.00, images: ["🎽", "🎽", "🏃"] },
-    { id: 9, category: "Bottoms", name: "High-Rise Denim", price: 90.00, images: ["👖", "👖", "👟"] },
-    { id: 10, category: "Bottoms", name: "Pleated Trousers", price: 110.00, images: ["👖", "🕴️", "👞"], badge: "LIMITED", badgeClass: "badge-hot" },
-    { id: 11, category: "Bottoms", name: "Linen Shorts", price: 55.00, images: ["🩳", "🩳", "🏖️"] },
-    { id: 12, category: "Bottoms", name: "Midi Slip Skirt", price: 75.00, images: ["👗", "👗", "👠"] },
-    { id: 13, category: "Accessories", name: "Leather Tote", price: 150.00, images: ["👜", "👝", "💼"] },
-    { id: 14, category: "Accessories", name: "Aviator Glasses", price: 120.00, images: ["🕶️", "😎", "☀️"] },
-    { id: 15, category: "Accessories", name: "Cashmere Scarf", price: 85.00, images: ["🧣", "🧣", "❄️"] },
-    { id: 16, category: "Accessories", name: "Canvas Bag", price: 45.00, images: ["🛍️", "🎒", "🌴"] }
-];
+const PRODUCTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0MnVCxHS8wU9pA4laJ45n9_UaV9rrPc-PhadUQ_v71gq0c2ENR2dPp6uqf9fgCSPA-BcEXYe0iMqu/pub?output=csv";
 
-// ==========================================
-// 2. CORE STORE LOGIC
-// ==========================================
+// *** REPLACE THIS LINK WITH YOUR "CAROUSEL" TAB CSV LINK ***
+const CAROUSEL_CSV_URL = "YOUR_CAROUSEL_CSV_LINK_HERE"; 
+
+let storeProducts = [];
+let carouselItems = [];
+let shoppingCart = [];
+const STORE_PHONE = "959793155856"; 
+
 const catalogView = document.getElementById('catalog-view');
 const productView = document.getElementById('product-view');
 const cartView = document.getElementById('cart-view');
 const mainGrid = document.getElementById('product-grid');
-const STORE_PHONE = "959793155856"; 
-let shoppingCart = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    // We simulate an 800ms "network delay" so you can see the premium Skeleton Loaders
-    simulateNetworkLoad(mockProducts, mainGrid);
+    // Show skeletons while data is fetching
+    renderSkeletons(mainGrid, 8);
+    renderSkeletons(document.getElementById('new-arrivals-grid'), 4);
+    renderSkeletons(document.getElementById('trending-grid'), 4);
     
-    const newArrivals = [...mockProducts].reverse().slice(0, 4);
-    simulateNetworkLoad(newArrivals, document.getElementById('new-arrivals-grid'));
-
-    const trending = [...mockProducts].sort(() => 0.5 - Math.random()).slice(0, 4);
-    simulateNetworkLoad(trending, document.getElementById('trending-grid'));
+    fetchStoreData();
 });
 
-// SKELETON LOADER LOGIC
+// === FETCH DATA FROM GOOGLE SHEETS ===
+function fetchStoreData() {
+    // 1. Fetch Products
+    Papa.parse(PRODUCTS_CSV_URL, {
+        download: true,
+        header: true,
+        complete: function(results) {
+            // Clean and map the data dynamically
+            storeProducts = results.data
+                .filter(row => row.id && row.name) // Skip empty rows
+                .map(row => {
+                    // Filter out empty image columns dynamically
+                    const imgs = [row.image1, row.image2, row.image3].filter(img => img && img.trim() !== '');
+                    
+                    // Parse tags string into an array
+                    const tagsArray = row.tags ? row.tags.split(',').map(tag => tag.trim()) : [];
+                    
+                    return {
+                        id: row.id.toString(),
+                        category: row.category || 'Uncategorized',
+                        subCategory: row.subCategory || '',
+                        name: row.name,
+                        description: row.description || '',
+                        price: parseFloat(row.price) || 0,
+                        discountPrice: row.discountPrice ? parseFloat(row.discountPrice) : null,
+                        tags: tagsArray,
+                        images: imgs.length > 0 ? imgs : ['https://via.placeholder.com/300x400?text=No+Image']
+                    };
+                });
+
+            renderGrid(storeProducts, mainGrid);
+            
+            const newArrivals = [...storeProducts].reverse().slice(0, 4);
+            renderGrid(newArrivals, document.getElementById('new-arrivals-grid'));
+
+            const trending = [...storeProducts].sort(() => 0.5 - Math.random()).slice(0, 4);
+            renderGrid(trending, document.getElementById('trending-grid'));
+        }
+    });
+
+    // 2. Fetch Carousel
+    if (CAROUSEL_CSV_URL && CAROUSEL_CSV_URL !== "YOUR_CAROUSEL_CSV_LINK_HERE") {
+        Papa.parse(CAROUSEL_CSV_URL, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                carouselItems = results.data.filter(row => row.imageUrl);
+                renderCarousel();
+            }
+        });
+    }
+}
+
+// === RENDER LOGIC ===
 function renderSkeletons(container, count = 8) {
     container.innerHTML = '';
     for(let i=0; i<count; i++) {
@@ -52,19 +88,10 @@ function renderSkeletons(container, count = 8) {
                 <div class="skeleton-box skeleton-text"></div>
                 <div class="skeleton-box skeleton-text skeleton-title"></div>
                 <div class="skeleton-box skeleton-text"></div>
-            </div>
-        `;
+            </div>`;
     }
 }
 
-function simulateNetworkLoad(productsArray, container) {
-    renderSkeletons(container, productsArray.length > 4 ? 8 : 4);
-    setTimeout(() => {
-        renderGrid(productsArray, container);
-    }, 800); // 800 milliseconds delay
-}
-
-// RENDERING CARDS
 function renderGrid(productsArray, container) {
     container.innerHTML = ''; 
     productsArray.forEach(product => {
@@ -72,24 +99,81 @@ function renderGrid(productsArray, container) {
         card.className = 'product-card';
         card.onclick = () => openProduct(product.id);
         
-        // Check if item has a badge
-        let badgeHTML = '';
-        if (product.badge) {
-            const badgeClass = product.badgeClass ? product.badgeClass : '';
-            badgeHTML = `<span class="product-badge ${badgeClass}">${product.badge}</span>`;
+        // Build badges
+        let badgesHTML = '<div class="badge-container">';
+        product.tags.forEach(tag => {
+            const isDiscount = tag.includes('%') || tag.toLowerCase().includes('off');
+            badgesHTML += `<span class="product-badge ${isDiscount ? 'badge-discount' : ''}">${tag}</span>`;
+        });
+        badgesHTML += '</div>';
+
+        // Build price (Handle discounts)
+        let priceHTML = '';
+        if (product.discountPrice) {
+            priceHTML = `<p class="product-price"><span class="old-price">$${product.price.toFixed(2)}</span> <span class="sale-price">$${product.discountPrice.toFixed(2)}</span></p>`;
+        } else {
+            priceHTML = `<p class="product-price">$${product.price.toFixed(2)}</p>`;
         }
 
+        // Output Card (Using object-fit: cover for grid)
         card.innerHTML = `
-            ${badgeHTML}
-            <div class="emoji-placeholder">${product.images[0]}</div>
+            ${product.tags.length > 0 ? badgesHTML : ''}
+            <div class="img-container">
+                <img src="${product.images[0]}" class="grid-img" alt="${product.name}" loading="lazy">
+            </div>
             <div class="product-info">
                 <p class="product-brand">${product.category}</p>
                 <h3 class="product-title">${product.name}</h3>
-                <p class="product-price">$${product.price.toFixed(2)}</p>
+                ${priceHTML}
             </div>
         `;
         container.appendChild(card);
     });
+}
+
+// === CAROUSEL RENDERING & FILTER LOGIC ===
+function renderCarousel() {
+    const track = document.getElementById('model-track');
+    const container = document.getElementById('model-carousel-container');
+    track.innerHTML = '';
+    
+    if(carouselItems.length === 0) return;
+    
+    container.style.display = 'block';
+
+    // Duplicate array dynamically to ensure seamless infinite scroll
+    const loopItems = [...carouselItems, ...carouselItems]; 
+
+    loopItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'model-item';
+        // Clicking model passes the linked IDs or Categories
+        div.onclick = () => filterFromCarousel(item.link);
+        div.innerHTML = `<img src="${item.imageUrl}" alt="Model" loading="lazy">`;
+        track.appendChild(div);
+    });
+}
+
+function filterFromCarousel(linkData) {
+    if (!linkData || linkData.trim() === "") return;
+    
+    // Split the comma-separated links (e.g. "101, 105" or "Tops")
+    const searchTerms = linkData.split(',').map(term => term.trim().toLowerCase());
+    
+    // Filter the products: matches ID OR matches Category
+    const filtered = storeProducts.filter(p => 
+        searchTerms.includes(p.id.toLowerCase()) || 
+        searchTerms.includes(p.category.toLowerCase())
+    );
+    
+    // Hide extra sections to focus on results
+    document.getElementById('main-hero').style.display = 'none';
+    document.getElementById('home-extra-sections').style.display = 'none';
+    
+    closeAllViews();
+    renderGrid(filtered, mainGrid);
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // === SEARCH & FILTERS ===
@@ -115,7 +199,7 @@ function searchProducts() {
     document.getElementById('main-hero').style.display = 'none';
     document.getElementById('home-extra-sections').style.display = 'none';
 
-    const filtered = mockProducts.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+    const filtered = storeProducts.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
     
     if(catalogView.style.display === 'none') {
         closeAllViews(); 
@@ -133,11 +217,9 @@ function filterProducts(category) {
     document.getElementById('main-hero').style.display = 'block';
     document.getElementById('home-extra-sections').style.display = 'block';
     
-    // Using simulated load so the skeleton flashes when filtering
-    simulateNetworkLoad(category === 'All' ? mockProducts : mockProducts.filter(p => p.category === category), mainGrid);
+    renderGrid(category === 'All' ? storeProducts : storeProducts.filter(p => p.category === category), mainGrid);
 }
 
-// === VIEW MANAGEMENT ===
 function closeAllViews() {
     productView.style.display = 'none';
     cartView.style.display = 'none';
@@ -149,26 +231,38 @@ function closeAllViews() {
 
 // === PRODUCT DETAIL VIEW ===
 function openProduct(productId) {
-    const product = mockProducts.find(p => p.id === productId);
+    const product = storeProducts.find(p => p.id === productId.toString());
     if (!product) return;
 
     document.getElementById('current-product-id').value = product.id;
     document.getElementById('detail-category').innerText = product.category;
     document.getElementById('detail-title').innerText = product.name;
-    document.getElementById('detail-price').innerText = `$${product.price.toFixed(2)}`;
+    document.getElementById('detail-description').innerText = product.description;
+    
+    if (product.discountPrice) {
+        document.getElementById('detail-price').innerHTML = `<span class="old-price">$${product.price.toFixed(2)}</span> <span class="sale-price">$${product.discountPrice.toFixed(2)}</span>`;
+    } else {
+        document.getElementById('detail-price').innerText = `$${product.price.toFixed(2)}`;
+    }
+    
     document.getElementById('item-qty').value = 1;
 
-    const mainImg = document.getElementById('detail-main-img');
+    // Gallery Logic (Uncropped main image, dynamic length)
+    const mainImgContainer = document.getElementById('detail-main-img-container');
     const thumbContainer = document.getElementById('detail-thumbnails');
-    mainImg.innerText = product.images[0];
+    
+    mainImgContainer.innerHTML = `<img src="${product.images[0]}" class="detail-main-img" id="detail-main-img">`;
+    const mainImg = document.getElementById('detail-main-img');
+    
     thumbContainer.innerHTML = '';
-
-    product.images.forEach((emojiString, index) => {
+    
+    // Only render thumbnails that actually exist in the array
+    product.images.forEach((imgUrl, index) => {
         const thumb = document.createElement('div');
         thumb.className = `thumb-box ${index === 0 ? 'active' : ''}`;
-        thumb.innerText = emojiString;
+        thumb.innerHTML = `<img src="${imgUrl}" alt="Thumbnail">`;
         thumb.onclick = () => {
-            mainImg.innerText = emojiString;
+            mainImg.src = imgUrl;
             document.querySelectorAll('.thumb-box').forEach(t => t.classList.remove('active'));
             thumb.classList.add('active');
         };
@@ -176,8 +270,7 @@ function openProduct(productId) {
     });
 
     document.getElementById('related-category-name').innerText = product.category;
-    renderGrid(mockProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4), document.getElementById('related-grid-same'));
-    renderGrid(mockProducts.filter(p => p.category !== product.category).sort(() => 0.5 - Math.random()).slice(0, 4), document.getElementById('related-grid-other'));
+    renderGrid(storeProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4), document.getElementById('related-grid-same'));
 
     catalogView.style.display = 'none';
     cartView.style.display = 'none';
@@ -193,13 +286,15 @@ function changeQty(amount) {
 }
 
 function addToCart() {
-    const productId = parseInt(document.getElementById('current-product-id').value);
+    const productId = document.getElementById('current-product-id').value;
     const quantity = parseInt(document.getElementById('item-qty').value);
-    const product = mockProducts.find(p => p.id === productId);
+    const product = storeProducts.find(p => p.id === productId);
     const existingItem = shoppingCart.find(item => item.id === productId);
     
+    const activePrice = product.discountPrice ? product.discountPrice : product.price;
+
     if (existingItem) existingItem.quantity += quantity;
-    else shoppingCart.push({ id: product.id, name: product.name, price: product.price, quantity: quantity });
+    else shoppingCart.push({ id: product.id, name: product.name, price: activePrice, quantity: quantity });
 
     updateCartBadge();
     
@@ -213,16 +308,13 @@ function addToCart() {
 function updateCartBadge() {
     const badge = document.getElementById('cart-count-badge');
     badge.innerText = shoppingCart.reduce((sum, item) => sum + item.quantity, 0);
-    
-    // Add cart bump animation
     badge.classList.remove('bump');
-    void badge.offsetWidth; // Trigger DOM reflow to restart animation
+    void badge.offsetWidth; 
     badge.classList.add('bump');
 }
 
 function openCart() {
     renderCart();
-    renderGrid([...mockProducts].sort(() => 0.5 - Math.random()).slice(0, 4), document.getElementById('cart-recommended-grid'));
     catalogView.style.display = 'none';
     productView.style.display = 'none';
     cartView.style.display = 'block';
@@ -230,7 +322,7 @@ function openCart() {
 }
 
 function removeFromCart(productId) {
-    shoppingCart = shoppingCart.filter(item => item.id !== productId);
+    shoppingCart = shoppingCart.filter(item => item.id !== productId.toString());
     updateCartBadge();
     renderCart();
 }
@@ -255,7 +347,7 @@ function renderCart() {
                 <div class="cart-item-info">
                     <h4>${item.name}</h4>
                     <p>Qty: ${item.quantity} x $${item.price.toFixed(2)}</p>
-                    <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+                    <button class="remove-btn" onclick="removeFromCart('${item.id}')">Remove</button>
                 </div>
                 <div class="cart-item-price">
                     <strong>$${itemTotal.toFixed(2)}</strong>
@@ -265,7 +357,7 @@ function renderCart() {
     totalDisplay.innerText = `$${grandTotal.toFixed(2)}`;
 }
 
-// === CHECKOUT / MESSAGING ===
+// === CHECKOUT ===
 function processCheckout(platform) {
     if (shoppingCart.length === 0) return alert("Your cart is empty!");
 
@@ -275,13 +367,7 @@ function processCheckout(platform) {
 
     if (!name || !phone || !address) return alert("Please fill out all delivery details.");
 
-    // Fire Confetti!
-    confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#000000', '#ffffff', '#717171']
-    });
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#000000', '#ffffff', '#717171'] });
 
     const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
     let grandTotal = 0;
@@ -295,12 +381,8 @@ function processCheckout(platform) {
     const orderMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${itemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
     const encodedMessage = encodeURIComponent(orderMessage);
 
-    // Wait slightly so they can see the confetti before opening the app
     setTimeout(() => {
-        if (platform === 'telegram') {
-            window.open(`https://t.me/+${STORE_PHONE}?text=${encodedMessage}`, '_blank');
-        } else if (platform === 'viber') {
-            window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_blank');
-        }
+        if (platform === 'telegram') window.open(`https://t.me/+${STORE_PHONE}?text=${encodedMessage}`, '_blank');
+        else if (platform === 'viber') window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_blank');
     }, 800);
 }
