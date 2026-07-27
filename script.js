@@ -1,10 +1,6 @@
-// ==========================================
-// 1. DATABASE CONNECTION (GOOGLE SHEETS)
-// ==========================================
-const PRODUCTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0MnVCxHS8wU9pA4laJ45n9_UaV9rrPc-PhadUQ_v71gq0c2ENR2dPp6uqf9fgCSPA-BcEXYe0iMqu/pub?output=csv";
-
-// *** REPLACE THIS LINK WITH YOUR "CAROUSEL" TAB CSV LINK ***
-const CAROUSEL_CSV_URL = "YOUR_CAROUSEL_CSV_LINK_HERE"; 
+// 1. Google Sheets URLs
+const PRODUCTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0MnVCxHS8wU9pA4laJ45n9_UaV9rrPc-PhadUQ_v71gq0c2ENR2dPp6uqf9fgCSPA-BcEXYe0iMqu/pub?gid=0&single=true&output=csv";
+const CAROUSEL_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0MnVCxHS8wU9pA4laJ45n9_UaV9rrPc-PhadUQ_v71gq0c2ENR2dPp6uqf9fgCSPA-BcEXYe0iMqu/pub?gid=1445747052&single=true&output=csv"; 
 
 let storeProducts = [];
 let carouselItems = [];
@@ -17,7 +13,6 @@ const cartView = document.getElementById('cart-view');
 const mainGrid = document.getElementById('product-grid');
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Show skeletons while data is fetching
     renderSkeletons(mainGrid, 8);
     renderSkeletons(document.getElementById('new-arrivals-grid'), 4);
     renderSkeletons(document.getElementById('trending-grid'), 4);
@@ -25,23 +20,20 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchStoreData();
 });
 
-// === FETCH DATA FROM GOOGLE SHEETS ===
 function fetchStoreData() {
-    // 1. Fetch Products
-    Papa.parse(PRODUCTS_CSV_URL, {
+    // CACHE BUSTER: This forces the browser to pull fresh data from Google
+    const cacheBuster = "&t=" + new Date().getTime();
+
+    // Fetch Products
+    Papa.parse(PRODUCTS_CSV_URL + cacheBuster, {
         download: true,
         header: true,
         complete: function(results) {
-            // Clean and map the data dynamically
             storeProducts = results.data
-                .filter(row => row.id && row.name) // Skip empty rows
+                .filter(row => row.id && row.name)
                 .map(row => {
-                    // Filter out empty image columns dynamically
                     const imgs = [row.image1, row.image2, row.image3].filter(img => img && img.trim() !== '');
-                    
-                    // Parse tags string into an array
                     const tagsArray = row.tags ? row.tags.split(',').map(tag => tag.trim()) : [];
-                    
                     return {
                         id: row.id.toString(),
                         category: row.category || 'Uncategorized',
@@ -56,18 +48,14 @@ function fetchStoreData() {
                 });
 
             renderGrid(storeProducts, mainGrid);
-            
-            const newArrivals = [...storeProducts].reverse().slice(0, 4);
-            renderGrid(newArrivals, document.getElementById('new-arrivals-grid'));
-
-            const trending = [...storeProducts].sort(() => 0.5 - Math.random()).slice(0, 4);
-            renderGrid(trending, document.getElementById('trending-grid'));
+            renderGrid([...storeProducts].reverse().slice(0, 4), document.getElementById('new-arrivals-grid'));
+            renderGrid([...storeProducts].sort(() => 0.5 - Math.random()).slice(0, 4), document.getElementById('trending-grid'));
         }
     });
 
-    // 2. Fetch Carousel
-    if (CAROUSEL_CSV_URL && CAROUSEL_CSV_URL !== "YOUR_CAROUSEL_CSV_LINK_HERE") {
-        Papa.parse(CAROUSEL_CSV_URL, {
+    // Fetch Carousel
+    if (CAROUSEL_CSV_URL) {
+        Papa.parse(CAROUSEL_CSV_URL + cacheBuster, {
             download: true,
             header: true,
             complete: function(results) {
@@ -78,7 +66,6 @@ function fetchStoreData() {
     }
 }
 
-// === RENDER LOGIC ===
 function renderSkeletons(container, count = 8) {
     container.innerHTML = '';
     for(let i=0; i<count; i++) {
@@ -99,7 +86,6 @@ function renderGrid(productsArray, container) {
         card.className = 'product-card';
         card.onclick = () => openProduct(product.id);
         
-        // Build badges
         let badgesHTML = '<div class="badge-container">';
         product.tags.forEach(tag => {
             const isDiscount = tag.includes('%') || tag.toLowerCase().includes('off');
@@ -107,7 +93,6 @@ function renderGrid(productsArray, container) {
         });
         badgesHTML += '</div>';
 
-        // Build price (Handle discounts)
         let priceHTML = '';
         if (product.discountPrice) {
             priceHTML = `<p class="product-price"><span class="old-price">$${product.price.toFixed(2)}</span> <span class="sale-price">$${product.discountPrice.toFixed(2)}</span></p>`;
@@ -115,7 +100,6 @@ function renderGrid(productsArray, container) {
             priceHTML = `<p class="product-price">$${product.price.toFixed(2)}</p>`;
         }
 
-        // Output Card (Using object-fit: cover for grid)
         card.innerHTML = `
             ${product.tags.length > 0 ? badgesHTML : ''}
             <div class="img-container">
@@ -131,23 +115,19 @@ function renderGrid(productsArray, container) {
     });
 }
 
-// === CAROUSEL RENDERING & FILTER LOGIC ===
 function renderCarousel() {
     const track = document.getElementById('model-track');
     const container = document.getElementById('model-carousel-container');
     track.innerHTML = '';
     
     if(carouselItems.length === 0) return;
-    
     container.style.display = 'block';
 
-    // Duplicate array dynamically to ensure seamless infinite scroll
     const loopItems = [...carouselItems, ...carouselItems]; 
 
     loopItems.forEach(item => {
         const div = document.createElement('div');
         div.className = 'model-item';
-        // Clicking model passes the linked IDs or Categories
         div.onclick = () => filterFromCarousel(item.link);
         div.innerHTML = `<img src="${item.imageUrl}" alt="Model" loading="lazy">`;
         track.appendChild(div);
@@ -156,17 +136,13 @@ function renderCarousel() {
 
 function filterFromCarousel(linkData) {
     if (!linkData || linkData.trim() === "") return;
-    
-    // Split the comma-separated links (e.g. "101, 105" or "Tops")
     const searchTerms = linkData.split(',').map(term => term.trim().toLowerCase());
     
-    // Filter the products: matches ID OR matches Category
     const filtered = storeProducts.filter(p => 
         searchTerms.includes(p.id.toLowerCase()) || 
         searchTerms.includes(p.category.toLowerCase())
     );
     
-    // Hide extra sections to focus on results
     document.getElementById('main-hero').style.display = 'none';
     document.getElementById('home-extra-sections').style.display = 'none';
     
@@ -176,7 +152,6 @@ function filterFromCarousel(linkData) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// === SEARCH & FILTERS ===
 function toggleSearch() {
     const searchBar = document.getElementById('search-bar');
     const searchInput = document.getElementById('search-input');
@@ -229,7 +204,6 @@ function closeAllViews() {
     window.scrollTo(0, 0);
 }
 
-// === PRODUCT DETAIL VIEW ===
 function openProduct(productId) {
     const product = storeProducts.find(p => p.id === productId.toString());
     if (!product) return;
@@ -247,7 +221,6 @@ function openProduct(productId) {
     
     document.getElementById('item-qty').value = 1;
 
-    // Gallery Logic (Uncropped main image, dynamic length)
     const mainImgContainer = document.getElementById('detail-main-img-container');
     const thumbContainer = document.getElementById('detail-thumbnails');
     
@@ -256,7 +229,6 @@ function openProduct(productId) {
     
     thumbContainer.innerHTML = '';
     
-    // Only render thumbnails that actually exist in the array
     product.images.forEach((imgUrl, index) => {
         const thumb = document.createElement('div');
         thumb.className = `thumb-box ${index === 0 ? 'active' : ''}`;
@@ -278,7 +250,6 @@ function openProduct(productId) {
     window.scrollTo(0, 0);
 }
 
-// === CART LOGIC ===
 function changeQty(amount) {
     const qtyInput = document.getElementById('item-qty');
     let newVal = parseInt(qtyInput.value) + amount;
@@ -357,7 +328,6 @@ function renderCart() {
     totalDisplay.innerText = `$${grandTotal.toFixed(2)}`;
 }
 
-// === CHECKOUT ===
 function processCheckout(platform) {
     if (shoppingCart.length === 0) return alert("Your cart is empty!");
 
