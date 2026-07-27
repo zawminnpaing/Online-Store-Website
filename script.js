@@ -378,9 +378,21 @@ function processCheckout(platform) {
 
     if (!name || !phone || !address) return alert("Please fill out all delivery details.");
 
+    // Fire Confetti
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#000000', '#ffffff', '#717171'] });
 
-    const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
+    // --- CHRONOLOGICAL ORDER ID LOGIC ---
+    const now = new Date();
+    const yy = now.getFullYear().toString().slice(-2);
+    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+    const dd = now.getDate().toString().padStart(2, '0');
+    const hh = now.getHours().toString().padStart(2, '0');
+    const mins = now.getMinutes().toString().padStart(2, '0');
+    const ss = now.getSeconds().toString().padStart(2, '0');
+    
+    // Generates a timestamp ID like: ORD-260728-143045
+    const orderId = `ORD-${yy}${mm}${dd}-${hh}${mins}${ss}`; 
+
     let grandTotal = 0;
     let itemsText = "";
     
@@ -389,11 +401,17 @@ function processCheckout(platform) {
         itemsText += `- ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toFixed(2)})\n`;
     });
 
-    const orderMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${itemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
-    const encodedMessage = encodeURIComponent(orderMessage);
+    const telegramMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${itemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
+    const viberMessage = `NEW ORDER: ${orderId}\n\nITEMS:\n${itemsText}TOTAL: $${grandTotal.toFixed(2)}\n\nCUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
 
-    setTimeout(() => {
-        if (platform === 'telegram') window.open(`https://t.me/+${STORE_PHONE}?text=${encodedMessage}`, '_blank');
-        else if (platform === 'viber') window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_blank');
-    }, 800);
+    if (platform === 'telegram') {
+        window.open(`https://t.me/+${STORE_PHONE}?text=${encodeURIComponent(telegramMessage)}`, '_blank');
+    } else if (platform === 'viber') {
+        window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodeURIComponent(viberMessage)}`, '_blank');
+    }
+
+    // --- CLEAR CART AFTER CHECKOUT ---
+    shoppingCart = [];
+    updateCartBadge();
+    renderCart();
 }
