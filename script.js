@@ -381,7 +381,7 @@ function processCheckout(platform) {
     // Fire Confetti
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#000000', '#ffffff', '#717171'] });
 
-    // --- CHRONOLOGICAL ORDER ID LOGIC ---
+    // Generate Chronological Order ID
     const now = new Date();
     const yy = now.getFullYear().toString().slice(-2);
     const mm = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -390,28 +390,35 @@ function processCheckout(platform) {
     const mins = now.getMinutes().toString().padStart(2, '0');
     const ss = now.getSeconds().toString().padStart(2, '0');
     
-    // Generates a timestamp ID like: ORD-260728-143045
     const orderId = `ORD-${yy}${mm}${dd}-${hh}${mins}${ss}`; 
 
     let grandTotal = 0;
-    let itemsText = "";
+    let telegramItemsText = "";
+    let viberItemsArray = [];
     
     shoppingCart.forEach(item => {
-        grandTotal += (item.price * item.quantity);
-        itemsText += `- ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toFixed(2)})\n`;
+        const itemTotal = item.price * item.quantity;
+        grandTotal += itemTotal;
+        
+        // Multi-line format for Telegram
+        telegramItemsText += `- ${item.quantity}x ${item.name} ($${itemTotal.toFixed(2)})\n`;
+        
+        // Single-line format for Viber to prevent the desktop truncation bug
+        viberItemsArray.push(`${item.quantity}x ${item.name}`);
     });
 
-    const telegramMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${itemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
-    const viberMessage = `NEW ORDER: ${orderId}\n\nITEMS:\n${itemsText}TOTAL: $${grandTotal.toFixed(2)}\n\nCUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
+    const telegramMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${telegramItemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
+    
+    // Completely flat, single-line text for Viber
+    const viberMessage = `NEW ORDER: ${orderId} | ITEMS: ${viberItemsArray.join(', ')} | TOTAL: $${grandTotal.toFixed(2)} | CUST: ${name}, Phone: ${phone}, Addr: ${address}`;
 
+    // Note: Switched to '_self' instead of '_blank' so it doesn't leave a useless blank tab in the browser
     if (platform === 'telegram') {
-        window.open(`https://t.me/+${STORE_PHONE}?text=${encodeURIComponent(telegramMessage)}`, '_blank');
+        // Using native tg:// protocol to bypass regional t.me web blocks
+        window.open(`tg://msg?to=+${STORE_PHONE}&text=${encodeURIComponent(telegramMessage)}`, '_self');
     } else if (platform === 'viber') {
-        window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodeURIComponent(viberMessage)}`, '_blank');
+        window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodeURIComponent(viberMessage)}`, '_self');
     }
 
-    // --- CLEAR CART AFTER CHECKOUT ---
-    shoppingCart = [];
-    updateCartBadge();
-    renderCart();
+    // We no longer clear the cart here! The customer's items remain safe.
 }
