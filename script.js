@@ -1,4 +1,3 @@
-// 1. Google Sheets URLs
 const PRODUCTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0MnVCxHS8wU9pA4laJ45n9_UaV9rrPc-PhadUQ_v71gq0c2ENR2dPp6uqf9fgCSPA-BcEXYe0iMqu/pub?gid=0&single=true&output=csv";
 const CAROUSEL_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0MnVCxHS8wU9pA4laJ45n9_UaV9rrPc-PhadUQ_v71gq0c2ENR2dPp6uqf9fgCSPA-BcEXYe0iMqu/pub?gid=1445747052&single=true&output=csv"; 
 
@@ -23,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function fetchStoreData() {
     const cacheBuster = "&t=" + new Date().getTime();
 
-    // Fetch Products
     Papa.parse(PRODUCTS_CSV_URL + cacheBuster, {
         download: true,
         header: true,
@@ -47,12 +45,16 @@ function fetchStoreData() {
                 });
 
             renderGrid(storeProducts, mainGrid);
-            renderGrid([...storeProducts].reverse().slice(0, 4), document.getElementById('new-arrivals-grid'));
-            renderGrid([...storeProducts].sort(() => 0.5 - Math.random()).slice(0, 4), document.getElementById('trending-grid'));
+            
+            // Smart fetch for sections
+            const newArrivals = getSectionProducts('New', storeProducts, 4);
+            renderGrid(newArrivals, document.getElementById('new-arrivals-grid'));
+            
+            const trending = getSectionProducts('Trending', storeProducts, 4);
+            renderGrid(trending, document.getElementById('trending-grid'));
         }
     });
 
-    // Fetch Carousel
     if (CAROUSEL_CSV_URL) {
         Papa.parse(CAROUSEL_CSV_URL + cacheBuster, {
             download: true,
@@ -63,6 +65,32 @@ function fetchStoreData() {
             }
         });
     }
+}
+
+// === SMART SECTION LOGIC ===
+// Looks for the exact tag first. If none found, pulls the first item from unique sub-categories.
+function getSectionProducts(targetTag, allProducts, limit = 4) {
+    const taggedProducts = allProducts.filter(p => 
+        p.tags.some(t => t.toLowerCase() === targetTag.toLowerCase())
+    );
+
+    if (taggedProducts.length > 0) {
+        return taggedProducts.slice(0, limit);
+    }
+
+    const fallbackProducts = [];
+    const seenSubCategories = new Set();
+
+    for (const p of allProducts) {
+        const groupingKey = p.subCategory ? p.subCategory.trim() : p.category.trim(); 
+        if (!seenSubCategories.has(groupingKey)) {
+            seenSubCategories.add(groupingKey);
+            fallbackProducts.push(p);
+        }
+        if (fallbackProducts.length === limit) break;
+    }
+
+    return fallbackProducts;
 }
 
 function renderSkeletons(container, count = 8) {
@@ -85,22 +113,20 @@ function renderGrid(productsArray, container) {
         card.className = 'product-card';
         card.onclick = () => openProduct(product.id);
         
-        // --- NEW TAG COLOR ASSIGNMENT LOGIC ---
         let badgesHTML = '<div class="badge-container">';
         product.tags.forEach(tag => {
-            let badgeClass = 'badge-default'; // Default is black
-            const text = tag.toLowerCase();
+            const tagLower = tag.toLowerCase();
+            let badgeClass = ''; // Default black
 
-            // Assign colors based on the text found in your Google Sheet
-            if (text.includes('%') || text.includes('off') || text.includes('sale')) {
+            if (tagLower.includes('%') || tagLower.includes('off')) {
                 badgeClass = 'badge-discount';
-            } else if (text === 'new' || text.includes('arrival')) {
+            } else if (tagLower === 'new') {
                 badgeClass = 'badge-new';
-            } else if (text.includes('trend')) {
+            } else if (tagLower === 'trending') {
                 badgeClass = 'badge-trending';
-            } else if (text.includes('limit')) {
+            } else if (tagLower === 'limited') {
                 badgeClass = 'badge-limited';
-            } else if (text.includes('best')) {
+            } else if (tagLower.includes('best seller') || tagLower.includes('bestseller')) {
                 badgeClass = 'badge-bestseller';
             }
 
