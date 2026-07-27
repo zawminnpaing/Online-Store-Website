@@ -49,18 +49,22 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
     .product-card:hover .img-container { box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
 }
 
-.img-container { background-color: var(--gray-bg); aspect-ratio: 3/4; overflow: hidden; border-radius: 12px; border: 1px solid #eaeaea; transition: var(--transition); position: relative; }
+/* Added border to grid images */
+.img-container { background-color: var(--gray-bg); aspect-ratio: 3/4; overflow: hidden; border-radius: 12px; transition: var(--transition); position: relative; border: 1px solid #eaeaea; }
 .grid-img { width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform 0.5s ease; }
 .product-card:hover .grid-img { transform: scale(1.05); }
 
-/* Badges & Tags */
+/* Updated Badge Logic for Colors */
 .badge-container { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 5px; z-index: 2; }
-.product-badge { font-size: 0.65rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase; width: max-content; }
+.product-badge { font-size: 0.65rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase; width: max-content; border: 1px solid transparent; }
+
+/* The varied tag styles */
 .badge-default { background: var(--text-dark); color: white; }
 .badge-discount { background: #ff4444; color: white; }
-.badge-new { background: #4CAF50; color: white; }
-.badge-trending { background: #FF9800; color: white; }
-.badge-limited { background: #9C27B0; color: white; }
+.badge-new { background: #ffffff; color: var(--text-dark); border-color: var(--text-dark); }
+.badge-trending { background: #c9a050; color: white; }
+.badge-bestseller { background: #1a365d; color: white; }
+.badge-limited { background: #5a1a1a; color: white; }
 
 .product-info { padding: 0.8rem 0; text-align: center; }
 .product-brand { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 0.2rem; }
@@ -80,11 +84,13 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
 .detail-layout { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 3rem; }
 @media (min-width: 768px) { .detail-layout { grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; } }
 
-.main-image-container { background-color: var(--gray-bg); border-radius: 12px; border: 1px solid #eaeaea; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+/* Added border to detail view main image */
+.main-image-container { background-color: var(--gray-bg); border-radius: 12px; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 1px solid #eaeaea; }
 .detail-main-img { width: 100%; max-height: 80vh; object-fit: contain; }
 
 .thumbnail-row { display: flex; gap: 1rem; margin-top: 1rem; overflow-x: auto; padding-bottom: 0.5rem; }
-.thumb-box { flex: 0 0 80px; height: 80px; background: var(--gray-bg); border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; }
+/* Added light border to thumbnails */
+.thumb-box { flex: 0 0 80px; height: 80px; background: var(--gray-bg); border-radius: 8px; overflow: hidden; cursor: pointer; border: 1px solid #eaeaea; }
 .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
 .thumb-box.active { border-color: var(--accent); }
 
@@ -121,7 +127,8 @@ h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
 .model-carousel { overflow: hidden; background: #ffffff; padding: 2rem 0; margin-top: 2rem; white-space: nowrap; position: relative; border-top: 1px solid #eaeaea; display: none; }
 .model-track { display: inline-block; animation: scroll 20s linear infinite; }
 .model-carousel:hover .model-track { animation-play-state: paused; }
-.model-item { display: inline-flex; align-items: center; justify-content: center; width: 200px; height: 300px; background: var(--gray-bg); margin: 0 1rem; border-radius: 12px; border: 1px solid #eaeaea; overflow: hidden; cursor: pointer; }
+/* Added border to carousel models */
+.model-item { display: inline-flex; align-items: center; justify-content: center; width: 200px; height: 300px; background: var(--gray-bg); margin: 0 1rem; border-radius: 12px; overflow: hidden; cursor: pointer; border: 1px solid #eaeaea; }
 .model-item img { width: 100%; height: 100%; object-fit: cover; }
 @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
