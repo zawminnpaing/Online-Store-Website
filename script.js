@@ -85,20 +85,23 @@ function renderGrid(productsArray, container) {
         card.className = 'product-card';
         card.onclick = () => openProduct(product.id);
         
+        // --- NEW TAG COLOR ASSIGNMENT LOGIC ---
         let badgesHTML = '<div class="badge-container">';
         product.tags.forEach(tag => {
-            // Check the tag text and assign the matching color class
-            const lowerTag = tag.toLowerCase();
-            let badgeClass = 'badge-default'; 
-            
-            if (lowerTag.includes('%') || lowerTag.includes('off') || lowerTag.includes('sale')) {
+            let badgeClass = 'badge-default'; // Default is black
+            const text = tag.toLowerCase();
+
+            // Assign colors based on the text found in your Google Sheet
+            if (text.includes('%') || text.includes('off') || text.includes('sale')) {
                 badgeClass = 'badge-discount';
-            } else if (lowerTag.includes('new')) {
+            } else if (text === 'new' || text.includes('arrival')) {
                 badgeClass = 'badge-new';
-            } else if (lowerTag.includes('trend')) {
+            } else if (text.includes('trend')) {
                 badgeClass = 'badge-trending';
-            } else if (lowerTag.includes('limited')) {
+            } else if (text.includes('limit')) {
                 badgeClass = 'badge-limited';
+            } else if (text.includes('best')) {
+                badgeClass = 'badge-bestseller';
             }
 
             badgesHTML += `<span class="product-badge ${badgeClass}">${tag}</span>`;
