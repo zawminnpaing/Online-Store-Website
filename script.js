@@ -393,32 +393,53 @@ function processCheckout(platform) {
     const orderId = `ORD-${yy}${mm}${dd}-${hh}${mins}${ss}`; 
 
     let grandTotal = 0;
-    let telegramItemsText = "";
-    let viberItemsArray = [];
+    let itemsText = "";
     
     shoppingCart.forEach(item => {
         const itemTotal = item.price * item.quantity;
         grandTotal += itemTotal;
-        
-        // Multi-line format for Telegram
-        telegramItemsText += `- ${item.quantity}x ${item.name} ($${itemTotal.toFixed(2)})\n`;
-        
-        // Single-line format for Viber to prevent the desktop truncation bug
-        viberItemsArray.push(`${item.quantity}x ${item.name}`);
+        itemsText += `- ${item.quantity}x ${item.name} ($${itemTotal.toFixed(2)})\n`;
     });
 
-    const telegramMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${telegramItemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
-    
-    // Completely flat, single-line text for Viber
-    const viberMessage = `NEW ORDER: ${orderId} | ITEMS: ${viberItemsArray.join(', ')} | TOTAL: $${grandTotal.toFixed(2)} | CUST: ${name}, Phone: ${phone}, Addr: ${address}`;
+    // We are back to the unified, beautiful emoji format for everything!
+    const orderMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${itemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
+    const encodedMessage = encodeURIComponent(orderMessage);
 
-    // Note: Switched to '_self' instead of '_blank' so it doesn't leave a useless blank tab in the browser
-    if (platform === 'telegram') {
-        // Using native tg:// protocol to bypass regional t.me web blocks
-        window.open(`tg://msg?to=+${STORE_PHONE}&text=${encodeURIComponent(telegramMessage)}`, '_self');
-    } else if (platform === 'viber') {
-        window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodeURIComponent(viberMessage)}`, '_self');
-    }
+    // Smart Device Detection
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // We no longer clear the cart here! The customer's items remain safe.
+    // Bulletproof Desktop Fix: Auto-Copy to Clipboard
+    navigator.clipboard.writeText(orderMessage).then(() => {
+        
+        // Only show the alert on laptops/desktops where truncation happens
+        if (!isMobile) {
+            alert("Order copied to clipboard! 📋\n\nPlease PASTE the message into the chat if it doesn't load fully.");
+        }
+        
+        // Route to the correct app
+        if (platform === 'telegram') {
+            if (isMobile) {
+                window.open(`https://t.me/+${STORE_PHONE}?text=${encodedMessage}`, '_blank');
+            } else {
+                // Desktop Telegram fix: native tg:// protocol with 'phone' parameter
+                window.open(`tg://resolve?phone=${STORE_PHONE}&text=${encodedMessage}`, '_self');
+            }
+        } else if (platform === 'viber') {
+            if (isMobile) {
+                window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_blank');
+            } else {
+                window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_self');
+            }
+        }
+        
+    }).catch(err => {
+        // Backup in case the browser blocks clipboard access
+        if (platform === 'telegram') {
+             window.open(isMobile ? `https://t.me/+${STORE_PHONE}?text=${encodedMessage}` : `tg://resolve?phone=${STORE_PHONE}&text=${encodedMessage}`, isMobile ? '_blank' : '_self');
+        } else if (platform === 'viber') {
+             window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, isMobile ? '_blank' : '_self');
+        }
+    });
+
+    // Cart is NOT cleared, keeping customer data safe just in case!
 }
