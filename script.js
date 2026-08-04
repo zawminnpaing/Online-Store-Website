@@ -7,7 +7,6 @@ let shoppingCart = [];
 const STORE_PHONE = "959793155856"; 
 
 const catalogView = document.getElementById('catalog-view');
-const productView = document.getElementById('product-view');
 const cartView = document.getElementById('cart-view');
 const mainGrid = document.getElementById('product-grid');
 
@@ -15,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSkeletons(mainGrid, 8);
     renderSkeletons(document.getElementById('new-arrivals-grid'), 4);
     renderSkeletons(document.getElementById('trending-grid'), 4);
-    
     fetchStoreData();
 });
 
@@ -45,13 +43,8 @@ function fetchStoreData() {
                 });
 
             renderGrid(storeProducts, mainGrid);
-            
-            // Smart fetch for sections
-            const newArrivals = getSectionProducts('New', storeProducts, 4);
-            renderGrid(newArrivals, document.getElementById('new-arrivals-grid'));
-            
-            const trending = getSectionProducts('Trending', storeProducts, 4);
-            renderGrid(trending, document.getElementById('trending-grid'));
+            renderGrid(getSectionProducts('New', storeProducts, 4), document.getElementById('new-arrivals-grid'));
+            renderGrid(getSectionProducts('Trending', storeProducts, 4), document.getElementById('trending-grid'));
         }
     });
 
@@ -67,30 +60,18 @@ function fetchStoreData() {
     }
 }
 
-// === SMART SECTION LOGIC ===
-// Looks for the exact tag first. If none found, pulls the first item from unique sub-categories.
 function getSectionProducts(targetTag, allProducts, limit = 4) {
-    const taggedProducts = allProducts.filter(p => 
-        p.tags.some(t => t.toLowerCase() === targetTag.toLowerCase())
-    );
+    const tagged = allProducts.filter(p => p.tags.some(t => t.toLowerCase() === targetTag.toLowerCase()));
+    if (tagged.length > 0) return tagged.slice(0, limit);
 
-    if (taggedProducts.length > 0) {
-        return taggedProducts.slice(0, limit);
-    }
-
-    const fallbackProducts = [];
-    const seenSubCategories = new Set();
-
+    const fallback = [];
+    const seen = new Set();
     for (const p of allProducts) {
-        const groupingKey = p.subCategory ? p.subCategory.trim() : p.category.trim(); 
-        if (!seenSubCategories.has(groupingKey)) {
-            seenSubCategories.add(groupingKey);
-            fallbackProducts.push(p);
-        }
-        if (fallbackProducts.length === limit) break;
+        const key = p.subCategory ? p.subCategory.trim() : p.category.trim(); 
+        if (!seen.has(key)) { seen.add(key); fallback.push(p); }
+        if (fallback.length === limit) break;
     }
-
-    return fallbackProducts;
+    return fallback;
 }
 
 function renderSkeletons(container, count = 8) {
@@ -100,7 +81,6 @@ function renderSkeletons(container, count = 8) {
             <div class="skeleton-card">
                 <div class="skeleton-box skeleton-img"></div>
                 <div class="skeleton-box skeleton-text"></div>
-                <div class="skeleton-box skeleton-text skeleton-title"></div>
                 <div class="skeleton-box skeleton-text"></div>
             </div>`;
     }
@@ -111,35 +91,18 @@ function renderGrid(productsArray, container) {
     productsArray.forEach(product => {
         const card = document.createElement('div');
         card.className = 'product-card';
-        card.onclick = () => openProduct(product.id);
-        
+        card.onclick = (e) => openProductInline(product.id, e.currentTarget);
+
         let badgesHTML = '<div class="badge-container">';
         product.tags.forEach(tag => {
-            const tagLower = tag.toLowerCase();
-            let badgeClass = ''; // Default black
-
-            if (tagLower.includes('%') || tagLower.includes('off')) {
-                badgeClass = 'badge-discount';
-            } else if (tagLower === 'new') {
-                badgeClass = 'badge-new';
-            } else if (tagLower === 'trending') {
-                badgeClass = 'badge-trending';
-            } else if (tagLower === 'limited') {
-                badgeClass = 'badge-limited';
-            } else if (tagLower.includes('best seller') || tagLower.includes('bestseller')) {
-                badgeClass = 'badge-bestseller';
-            }
-
-            badgesHTML += `<span class="product-badge ${badgeClass}">${tag}</span>`;
+            const isDiscount = tag.toLowerCase().includes('%') || tag.toLowerCase().includes('off');
+            badgesHTML += `<span class="product-badge ${isDiscount ? 'badge-discount' : ''}">${tag}</span>`;
         });
         badgesHTML += '</div>';
 
-        let priceHTML = '';
-        if (product.discountPrice) {
-            priceHTML = `<p class="product-price"><span class="old-price">$${product.price.toFixed(2)}</span> <span class="sale-price">$${product.discountPrice.toFixed(2)}</span></p>`;
-        } else {
-            priceHTML = `<p class="product-price">$${product.price.toFixed(2)}</p>`;
-        }
+        let priceHTML = product.discountPrice 
+            ? `<p class="product-price"><span class="old-price">$${product.price.toFixed(2)}</span> <span class="sale-price">$${product.discountPrice.toFixed(2)}</span></p>` 
+            : `<p class="product-price">$${product.price.toFixed(2)}</p>`;
 
         card.innerHTML = `
             ${product.tags.length > 0 ? badgesHTML : ''}
@@ -156,16 +119,127 @@ function renderGrid(productsArray, container) {
     });
 }
 
+function openProductInline(productId, cardElement) {
+    document.querySelectorAll('.inline-detail').forEach(el => el.remove());
+
+    const product = storeProducts.find(p => p.id === productId.toString());
+    if (!product) return;
+
+    const activePrice = product.discountPrice ? product.discountPrice : product.price;
+
+    let thumbnailsHTML = '';
+    product.images.forEach(imgUrl => {
+        thumbnailsHTML += `<img src="${imgUrl}" onclick="document.getElementById('main-img-${product.id}').src='${imgUrl}'" alt="${product.name} thumbnail">`;
+    });
+
+    const detailDiv = document.createElement('div');
+    detailDiv.className = 'inline-detail';
+
+    detailDiv.innerHTML = `
+        <button class="close-inline-btn" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="inline-gallery">
+            <div class="inline-main-img-container" onmouseenter="startZoom(this)" onmousemove="zoomImage(event, this)" onmouseleave="resetZoom(this)">
+                <img src="${product.images[0]}" class="main-inline-img" id="main-img-${product.id}" alt="${product.name}">
+            </div>
+            <div class="inline-thumbnails">
+                ${thumbnailsHTML}
+            </div>
+        </div>
+        <div class="inline-info-wrapper">
+            <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; margin: 0 0 0.2rem 0; color: #fff; line-height: 1.2;">${product.name}</h2>
+            <p style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent);">$${activePrice.toFixed(2)}</p>
+            <p class="inline-desc">${product.description || 'Premium selection from Luxe Elite. Crafted with excellence for the modern aesthetic.'}</p>
+            
+            <div class="inline-controls">
+                <div class="qty-selector">
+                    <button onclick="changeQtyInline(-1, this)">-</button>
+                    <input type="number" class="inline-qty" value="1" min="1" readonly>
+                    <button onclick="changeQtyInline(1, this)">+</button>
+                </div>
+                <button class="add-to-cart-btn" onclick="addInlineToCart('${product.id}', this)">
+                    ADD <i class="fas fa-shopping-bag"></i>
+                </button>
+            </div>
+        </div>
+    `;
+
+    const parentGrid = cardElement.parentElement;
+    const allCards = Array.from(parentGrid.children).filter(c => c.classList.contains('product-card'));
+    const index = allCards.indexOf(cardElement);
+    const cardsPerRow = window.innerWidth >= 768 ? 4 : 2; 
+    const insertAfterIndex = Math.min(index + (cardsPerRow - 1 - (index % cardsPerRow)), allCards.length - 1);
+
+    allCards[insertAfterIndex].after(detailDiv);
+    detailDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// === BULLETPROOF JS ZOOM MAGNIFIER ===
+function startZoom(container) {
+    if (window.innerWidth < 768) return; 
+    const img = container.querySelector('.main-inline-img');
+    if (img) img.style.transform = 'scale(2.5)'; 
+}
+
+function zoomImage(e, container) {
+    if (window.innerWidth < 768) return;
+    const img = container.querySelector('.main-inline-img');
+    if (!img) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const xPercent = (x / rect.width) * 100;
+    const yPercent = (y / rect.height) * 100;
+
+    img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+}
+
+function resetZoom(container) {
+    const img = container.querySelector('.main-inline-img');
+    if (img) {
+        img.style.transform = 'scale(1)'; 
+        setTimeout(() => {
+            img.style.transformOrigin = 'center center'; 
+        }, 150); 
+    }
+}
+
+function changeQtyInline(amount, btnElement) {
+    const input = btnElement.parentElement.querySelector('.inline-qty');
+    let newVal = parseInt(input.value) + amount;
+    if (newVal >= 1) input.value = newVal;
+}
+
+function addInlineToCart(productId, btnElement) {
+    const quantity = parseInt(btnElement.parentElement.querySelector('.inline-qty').value);
+    const product = storeProducts.find(p => p.id === productId);
+    const existingItem = shoppingCart.find(item => item.id === productId);
+    const activePrice = product.discountPrice ? product.discountPrice : product.price;
+
+    if (existingItem) existingItem.quantity += quantity;
+    else shoppingCart.push({ id: product.id, name: product.name, price: activePrice, quantity: quantity });
+
+    updateCartBadge();
+
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = '<i class="fas fa-check"></i>';
+    btnElement.style.background = '#00aa00';
+    setTimeout(() => { 
+        btnElement.innerHTML = originalText; 
+        btnElement.style.background = 'var(--accent)'; 
+        btnElement.closest('.inline-detail').remove();
+    }, 1000);
+}
+
 function renderCarousel() {
     const track = document.getElementById('model-track');
     const container = document.getElementById('model-carousel-container');
-    track.innerHTML = '';
-    
     if(carouselItems.length === 0) return;
     container.style.display = 'block';
-
     const loopItems = [...carouselItems, ...carouselItems]; 
-
     loopItems.forEach(item => {
         const div = document.createElement('div');
         div.className = 'model-item';
@@ -178,25 +252,18 @@ function renderCarousel() {
 function filterFromCarousel(linkData) {
     if (!linkData || linkData.trim() === "") return;
     const searchTerms = linkData.split(',').map(term => term.trim().toLowerCase());
-    
-    const filtered = storeProducts.filter(p => 
-        searchTerms.includes(p.id.toLowerCase()) || 
-        searchTerms.includes(p.category.toLowerCase())
-    );
-    
+    const filtered = storeProducts.filter(p => searchTerms.includes(p.id.toLowerCase()) || searchTerms.includes(p.category.toLowerCase()));
+
     document.getElementById('main-hero').style.display = 'none';
     document.getElementById('home-extra-sections').style.display = 'none';
-    
     closeAllViews();
     renderGrid(filtered, mainGrid);
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function toggleSearch() {
     const searchBar = document.getElementById('search-bar');
     const searchInput = document.getElementById('search-input');
-    
     if(searchBar.style.display === 'flex') {
         searchBar.style.display = 'none';
         searchInput.value = '';
@@ -214,17 +281,14 @@ function searchProducts() {
     const query = document.getElementById('search-input').value.toLowerCase();
     document.getElementById('main-hero').style.display = 'none';
     document.getElementById('home-extra-sections').style.display = 'none';
-
     const filtered = storeProducts.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
-    
+
     if(catalogView.style.display === 'none') {
         closeAllViews(); 
         document.getElementById('main-hero').style.display = 'none';
         document.getElementById('home-extra-sections').style.display = 'none';
     }
-    
     renderGrid(filtered, mainGrid);
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
 }
 
 function filterProducts(category) {
@@ -232,12 +296,10 @@ function filterProducts(category) {
     event.target.classList.add('active');
     document.getElementById('main-hero').style.display = 'block';
     document.getElementById('home-extra-sections').style.display = 'block';
-    
     renderGrid(category === 'All' ? storeProducts : storeProducts.filter(p => p.category === category), mainGrid);
 }
 
 function closeAllViews() {
-    productView.style.display = 'none';
     cartView.style.display = 'none';
     catalogView.style.display = 'block';
     document.getElementById('main-hero').style.display = 'block';
@@ -245,90 +307,14 @@ function closeAllViews() {
     window.scrollTo(0, 0);
 }
 
-function openProduct(productId) {
-    const product = storeProducts.find(p => p.id === productId.toString());
-    if (!product) return;
-
-    document.getElementById('current-product-id').value = product.id;
-    document.getElementById('detail-category').innerText = product.category;
-    document.getElementById('detail-title').innerText = product.name;
-    document.getElementById('detail-description').innerText = product.description;
-    
-    if (product.discountPrice) {
-        document.getElementById('detail-price').innerHTML = `<span class="old-price">$${product.price.toFixed(2)}</span> <span class="sale-price">$${product.discountPrice.toFixed(2)}</span>`;
-    } else {
-        document.getElementById('detail-price').innerText = `$${product.price.toFixed(2)}`;
-    }
-    
-    document.getElementById('item-qty').value = 1;
-
-    const mainImgContainer = document.getElementById('detail-main-img-container');
-    const thumbContainer = document.getElementById('detail-thumbnails');
-    
-    mainImgContainer.innerHTML = `<img src="${product.images[0]}" class="detail-main-img" id="detail-main-img">`;
-    const mainImg = document.getElementById('detail-main-img');
-    
-    thumbContainer.innerHTML = '';
-    
-    product.images.forEach((imgUrl, index) => {
-        const thumb = document.createElement('div');
-        thumb.className = `thumb-box ${index === 0 ? 'active' : ''}`;
-        thumb.innerHTML = `<img src="${imgUrl}" alt="Thumbnail">`;
-        thumb.onclick = () => {
-            mainImg.src = imgUrl;
-            document.querySelectorAll('.thumb-box').forEach(t => t.classList.remove('active'));
-            thumb.classList.add('active');
-        };
-        thumbContainer.appendChild(thumb);
-    });
-
-    document.getElementById('related-category-name').innerText = product.category;
-    renderGrid(storeProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4), document.getElementById('related-grid-same'));
-
-    catalogView.style.display = 'none';
-    cartView.style.display = 'none';
-    productView.style.display = 'block';
-    window.scrollTo(0, 0);
-}
-
-function changeQty(amount) {
-    const qtyInput = document.getElementById('item-qty');
-    let newVal = parseInt(qtyInput.value) + amount;
-    if (newVal >= 1) qtyInput.value = newVal;
-}
-
-function addToCart() {
-    const productId = document.getElementById('current-product-id').value;
-    const quantity = parseInt(document.getElementById('item-qty').value);
-    const product = storeProducts.find(p => p.id === productId);
-    const existingItem = shoppingCart.find(item => item.id === productId);
-    
-    const activePrice = product.discountPrice ? product.discountPrice : product.price;
-
-    if (existingItem) existingItem.quantity += quantity;
-    else shoppingCart.push({ id: product.id, name: product.name, price: activePrice, quantity: quantity });
-
-    updateCartBadge();
-    
-    const btn = document.querySelector('.add-to-cart-btn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = 'Added! <i class="fas fa-check"></i>';
-    btn.style.background = '#4CAF50';
-    setTimeout(() => { btn.innerHTML = originalText; btn.style.background = 'var(--accent)'; }, 1500);
-}
-
 function updateCartBadge() {
     const badge = document.getElementById('cart-count-badge');
     badge.innerText = shoppingCart.reduce((sum, item) => sum + item.quantity, 0);
-    badge.classList.remove('bump');
-    void badge.offsetWidth; 
-    badge.classList.add('bump');
 }
 
 function openCart() {
     renderCart();
     catalogView.style.display = 'none';
-    productView.style.display = 'none';
     cartView.style.display = 'block';
     window.scrollTo(0, 0);
 }
@@ -339,14 +325,55 @@ function removeFromCart(productId) {
     renderCart();
 }
 
+// === NEW: Image Preview Function ===
+function previewReceipt(event) {
+    const file = event.target.files[0];
+    const previewContainer = document.getElementById('receipt-preview-container');
+    const previewImage = document.getElementById('receipt-preview');
+    
+    if (file) {
+        previewImage.src = URL.createObjectURL(file); 
+        previewContainer.style.display = 'block';     
+    } else {
+        previewImage.src = '';
+        previewContainer.style.display = 'none';
+    }
+}
+
+// === NEW: Copy Phone Number Function ===
+function copyPhoneNumber(btnElement) {
+    const phoneElement = document.getElementById('kbz-phone');
+    if (!phoneElement) return;
+    
+    // Grabs text and removes spaces so it pastes perfectly into the KBZPay app
+    const phoneText = phoneElement.innerText.replace(/\s+/g, '');
+    
+    navigator.clipboard.writeText(phoneText).then(() => {
+        const originalHTML = btnElement.innerHTML;
+        btnElement.innerHTML = '<i class="fas fa-check"></i>';
+        btnElement.classList.add('copied');
+        
+        // Revert back to copy icon after 2 seconds
+        setTimeout(() => {
+            btnElement.innerHTML = originalHTML;
+            btnElement.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert("Failed to copy phone number.");
+    });
+}
+
 function renderCart() {
     const container = document.getElementById('cart-items-container');
     const totalDisplay = document.getElementById('cart-total-price');
+    const depositDisplay = document.getElementById('deposit-amount'); 
     container.innerHTML = '';
-    
+
     if (shoppingCart.length === 0) {
-        container.innerHTML = '<p>Your cart is empty.</p>';
+        container.innerHTML = '<p style="color: #aaa;">Your cart is empty.</p>';
         totalDisplay.innerText = '$0.00';
+        if(depositDisplay) depositDisplay.innerText = '$0.00';
         return;
     }
 
@@ -357,31 +384,49 @@ function renderCart() {
         container.innerHTML += `
             <div class="cart-item">
                 <div class="cart-item-info">
-                    <h4>${item.name}</h4>
+                    <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: #fff;">${item.name}</h4>
                     <p>Qty: ${item.quantity} x $${item.price.toFixed(2)}</p>
                     <button class="remove-btn" onclick="removeFromCart('${item.id}')">Remove</button>
                 </div>
                 <div class="cart-item-price">
-                    <strong>$${itemTotal.toFixed(2)}</strong>
+                    <strong style="color: #fff;">$${itemTotal.toFixed(2)}</strong>
                 </div>
             </div>`;
     });
+
     totalDisplay.innerText = `$${grandTotal.toFixed(2)}`;
+
+    if(depositDisplay) {
+        const deposit = grandTotal / 2;
+        depositDisplay.innerText = `$${deposit.toFixed(2)}`;
+    }
 }
 
+// === UPDATED: Checkout Logic with Validation ===
 function processCheckout(platform) {
     if (shoppingCart.length === 0) return alert("Your cart is empty!");
 
     const name = document.getElementById('cust-name').value.trim();
     const phone = document.getElementById('cust-phone').value.trim();
     const address = document.getElementById('cust-address').value.trim();
+    const receiptInput = document.getElementById('kbz-receipt');
+    const trxInput = document.getElementById('kbz-trx');
+    const trx = trxInput ? trxInput.value.trim() : ""; 
 
-    if (!name || !phone || !address) return alert("Please fill out all delivery details.");
+    if (!name || !phone || !address) {
+        return alert("Please fill out all delivery details.\n(ပို့ဆောင်ရမည့် အချက်အလက်များကို ပြည့်စုံစွာဖြည့်ပေးပါ။)");
+    }
 
-    // Fire Confetti
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#000000', '#ffffff', '#717171'] });
+    if (!receiptInput || receiptInput.files.length === 0) {
+        return alert("⚠️ Please upload your KBZPay transaction screenshot.\n(ငွေလွှဲပြေစာ ဓာတ်ပုံထည့်သွင်းပေးပါ။)");
+    }
 
-    // Generate Chronological Order ID
+    if (!/^\d{5}$/.test(trx)) {
+        return alert("⚠️ Please enter exactly the last 5 digits of your KBZPay Transaction ID.\n(Transaction ID ၏ နောက်ဆုံးဂဏန်း ၅ လုံးကို မှန်ကန်စွာထည့်ပါ။)");
+    }
+
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff4444', '#ffffff', '#000000'] });
+
     const now = new Date();
     const yy = now.getFullYear().toString().slice(-2);
     const mm = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -389,57 +434,47 @@ function processCheckout(platform) {
     const hh = now.getHours().toString().padStart(2, '0');
     const mins = now.getMinutes().toString().padStart(2, '0');
     const ss = now.getSeconds().toString().padStart(2, '0');
-    
+
     const orderId = `ORD-${yy}${mm}${dd}-${hh}${mins}${ss}`; 
 
     let grandTotal = 0;
     let itemsText = "";
-    
+
     shoppingCart.forEach(item => {
         const itemTotal = item.price * item.quantity;
         grandTotal += itemTotal;
         itemsText += `- ${item.quantity}x ${item.name} ($${itemTotal.toFixed(2)})\n`;
     });
 
-    // We are back to the unified, beautiful emoji format for everything!
-    const orderMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${itemsText}💰 TOTAL: $${grandTotal.toFixed(2)}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
-    const encodedMessage = encodeURIComponent(orderMessage);
+    const deposit = grandTotal / 2;
 
-    // Smart Device Detection
+    const orderMessage = `🛍️ NEW ORDER: #${orderId}\n\n🛒 ITEMS:\n${itemsText}\n💰 TOTAL: $${grandTotal.toFixed(2)}\n💸 DEPOSIT PAID: $${deposit.toFixed(2)} (KBZPay)\n🔢 TRX LAST 5 DIGITS: ${trx}\n\n👤 CUSTOMER DETAILS:\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\n\n[CUSTOMER WILL ATTACH SCREENSHOT TO THIS CHAT]`;
+
+    const encodedMessage = encodeURIComponent(orderMessage);
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // Bulletproof Desktop Fix: Auto-Copy to Clipboard
-    navigator.clipboard.writeText(orderMessage).then(() => {
-        
-        // Only show the alert on laptops/desktops where truncation happens
-        if (!isMobile) {
-            alert("Order copied to clipboard! 📋\n\nPlease PASTE the message into the chat if it doesn't load fully.");
-        }
-        
-        // Route to the correct app
+    if (isMobile) {
+        alert("✅ Order Details Saved!\n\nIMPORTANT: When the chat opens, please click the 'Paperclip' or 'Gallery' icon to attach the screenshot you just took.\n\n(Chat ပွင့်လာပါက သင်၏ ငွေလွှဲပြေစာပုံကို ပူးတွဲပို့ဆောင်ပေးပါ။)");
         if (platform === 'telegram') {
-            if (isMobile) {
-                window.open(`https://t.me/+${STORE_PHONE}?text=${encodedMessage}`, '_blank');
-            } else {
-                // Desktop Telegram fix: native tg:// protocol with 'phone' parameter
-                window.open(`tg://resolve?phone=${STORE_PHONE}&text=${encodedMessage}`, '_self');
-            }
+            window.open(`https://t.me/+${STORE_PHONE}?text=${encodedMessage}`, '_blank');
         } else if (platform === 'viber') {
-            if (isMobile) {
-                window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_blank');
-            } else {
+            window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_blank');
+        }
+    } else {
+        navigator.clipboard.writeText(orderMessage).then(() => {
+            alert("✅ Order copied to clipboard! \n\nIMPORTANT: Please PASTE the text into the chat, and manually ATTACH the KBZPay screenshot from your computer.\n\n(Chat ပွင့်လာပါက စာကို Paste လုပ်ပြီး ငွေလွှဲပြေစာပုံကို ပူးတွဲပို့ဆောင်ပေးပါ။)");
+
+            if (platform === 'telegram') {
+                window.open(`tg://resolve?phone=${STORE_PHONE}&text=${encodedMessage}`, '_self');
+            } else if (platform === 'viber') {
                 window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_self');
             }
-        }
-        
-    }).catch(err => {
-        // Backup in case the browser blocks clipboard access
-        if (platform === 'telegram') {
-             window.open(isMobile ? `https://t.me/+${STORE_PHONE}?text=${encodedMessage}` : `tg://resolve?phone=${STORE_PHONE}&text=${encodedMessage}`, isMobile ? '_blank' : '_self');
-        } else if (platform === 'viber') {
-             window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, isMobile ? '_blank' : '_self');
-        }
-    });
-
-    // Cart is NOT cleared, keeping customer data safe just in case!
+        }).catch(err => {
+            if (platform === 'telegram') {
+                window.open(`tg://resolve?phone=${STORE_PHONE}&text=${encodedMessage}`, '_self');
+            } else if (platform === 'viber') {
+                window.open(`viber://chat?number=%2B${STORE_PHONE}&draft=${encodedMessage}`, '_self');
+            }
+        });
+    }
 }
