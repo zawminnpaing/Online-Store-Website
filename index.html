@@ -3,27 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- SEO & Social Sharing Tags -->
-    <title>Luxe | Digital Catalog</title>
-    <meta name="description" content="Elevate your everyday style with our latest high-end collection.">
-    <meta property="og:title" content="Luxe Fashion Store">
-    <meta property="og:description" content="Explore our premium outerwear, tops, bottoms, and accessories.">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200&auto=format&fit=crop">
-    <meta property="og:type" content="website">
 
-    <!-- Elegant Typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Luxe | Elite Catalog</title>
+    <meta name="description" content="Exclusive high-end collection.">
+
+    <!-- Elegant Fonts: Cormorant Garamond (Headings) & Montserrat (Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Sticky Navigation -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo" onclick="closeAllViews()">LUXE.</div>
@@ -37,7 +28,6 @@
         </div>
     </nav>
 
-    <!-- Search Bar Dropdown -->
     <div class="search-bar-container" id="search-bar" style="display: none;">
         <input type="text" id="search-input" onkeyup="searchProducts()" placeholder="Search for products, categories...">
         <i class="fas fa-times" onclick="toggleSearch()"></i>
@@ -47,11 +37,11 @@
     <div id="catalog-view">
         <header class="hero" id="main-hero">
             <div class="hero-content">
-                <h1>The New Collection</h1>
-                <p>Elevate your everyday style.</p>
+                <h1>The Elite Collection</h1>
+                <p>Dark, elegant, and unapologetic.</p>
             </div>
         </header>
-        
+
         <main class="store-container">
             <div class="filter-bar" id="filter-bar">
                 <button class="filter-btn active" onclick="filterProducts('All')">All</button>
@@ -60,10 +50,8 @@
                 <button class="filter-btn" onclick="filterProducts('Bottoms')">Bottoms</button>
                 <button class="filter-btn" onclick="filterProducts('Accessories')">Accessories</button>
             </div>
-            
-            <div class="product-grid" id="product-grid">
-                <!-- Products dynamically injected here -->
-            </div>
+
+            <div class="product-grid" id="product-grid"></div>
 
             <div id="home-extra-sections">
                 <div class="related-section">
@@ -76,53 +64,23 @@
                 </div>
             </div>
         </main>
-    </div>
 
-    <!-- === PRODUCT DETAIL VIEW === -->
-    <div id="product-view" style="display: none;">
-        <main class="detail-container">
-            <button class="back-btn" onclick="closeAllViews()">
-                <i class="fas fa-arrow-left"></i> Back to Catalog
-            </button>
+        <!-- Infinite Image Carousel -->
+        <div class="model-carousel" id="model-carousel-container">
+            <div class="model-track" id="model-track"></div>
+        </div>
 
-            <div class="detail-layout">
-                <div class="detail-gallery">
-                    <div class="main-image-container" id="detail-main-img-container">
-                        <!-- Main image injected here -->
-                    </div>
-                    <div class="thumbnail-row" id="detail-thumbnails"></div>
-                </div>
-
-                <div class="detail-info">
-                    <p class="product-brand" id="detail-category">Category</p>
-                    <h1 class="detail-title" id="detail-title">Product Name</h1>
-                    <p class="detail-price" id="detail-price">$0.00</p>
-                    <p class="product-description" id="detail-description" style="margin-bottom: 1.5rem; color: var(--text-light);"></p>
-                    
-                    <div class="qty-selector">
-                        <button onclick="changeQty(-1)">-</button>
-                        <input type="number" id="item-qty" value="1" min="1" readonly>
-                        <button onclick="changeQty(1)">+</button>
-                    </div>
-                    
-                    <input type="hidden" id="current-product-id">
-
-                    <button class="add-to-cart-btn" onclick="addToCart()">
-                        Add to Cart <i class="fas fa-shopping-bag"></i>
-                    </button>
-                    
-                    <div class="shipping-info">
-                        <p><i class="fas fa-truck"></i> Free shipping on orders over $150</p>
-                        <p><i class="fas fa-undo"></i> 30-day return policy</p>
-                    </div>
-                </div>
+        <!-- Partner Logos Section -->
+        <section class="partner-logos-section">
+            <p class="partner-title">IN PARTNERSHIP WITH</p>
+            <div class="partner-track">
+                <span>LOUIS VUITTON</span>
+                <span>ZARA</span>
+                <span>GUCCI</span>
+                <span>PRADA</span>
+                <span>CHANEL</span>
             </div>
-
-            <div class="related-section">
-                <h2>More in <span id="related-category-name">This Category</span></h2>
-                <div class="product-grid" id="related-grid-same"></div>
-            </div>
-        </main>
+        </section>
     </div>
 
     <!-- === CART & CHECKOUT VIEW === -->
@@ -145,33 +103,81 @@
                 <div class="checkout-section">
                     <h2>Checkout Details</h2>
                     <form id="checkout-form">
-                        <div class="form-group"><label>Full Name</label><input type="text" id="cust-name" required></div>
-                        <div class="form-group"><label>Contact Number</label><input type="tel" id="cust-phone" required></div>
-                        <div class="form-group"><label>Delivery Location</label><textarea id="cust-address" rows="3" required></textarea></div>
+                        <div class="form-group">
+                            <label for="cust-name">Name / အမည် *</label>
+                            <input type="text" id="cust-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cust-phone">Phone Number / ဖုန်းနံပါတ် *</label>
+                            <input type="tel" id="cust-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cust-address">Delivery Address / ပို့ဆောင်ရမည့်လိပ်စာ *</label>
+                            <textarea id="cust-address" rows="3" required></textarea>
+                        </div>
+
+                        <!-- KBZPay Section -->
+                        <div class="payment-section">
+                            <h3 class="payment-title" style="margin-bottom: 10px;">
+                                KBZPay Deposit (50%)<br>
+                                <span style="font-size: 1rem; color: var(--accent);">KBZPay ဖြင့် ငွေ ၅၀% ကြိုတင်ပေးချေရန်</span>
+                            </h3>
+                            <p class="payment-instructions">
+                                To secure your order, please transfer exactly <strong id="deposit-amount" class="highlight-amount">$0.00</strong> to the account below:<br>
+                                <span style="font-size: 0.8rem; color: #bbb;">အော်ဒါတင်ခြင်းကို အတည်ပြုရန်အတွက် အောက်ပါအကောင့်သို့ ငွေတိတိကျကျ လွှဲပြောင်းပေးပါ -</span>
+                            </p>
+                            
+                            <div class="kbz-account-card">
+                                <!-- The new Copy Button row -->
+                                <div class="kbz-phone-row">
+                                    <strong id="kbz-phone">09 793155856</strong>
+                                    <button type="button" class="copy-phone-btn" onclick="copyPhoneNumber(this)" title="Copy Phone Number">
+                                        <i class="far fa-copy"></i>
+                                    </button>
+                                </div>
+                                <p>U Zaw Minn Paing</p>
+                            </div>
+
+                            <!-- Image Upload & Preview -->
+                            <div class="form-group" style="text-align: left;">
+                                <label for="kbz-receipt">
+                                    Upload Transaction Screenshot *<br>
+                                    <span style="font-size: 0.75rem; color: #aaa;">ငွေလွှဲပြေစာ ဓာတ်ပုံထည့်သွင်းရန် (မဖြစ်မနေ)</span>
+                                </label>
+                                <input type="file" id="kbz-receipt" accept="image/*" required onchange="previewReceipt(event)">
+                                
+                                <!-- Image Preview Container -->
+                                <div id="receipt-preview-container" style="display: none; margin-top: 10px; text-align: center;">
+                                    <img id="receipt-preview" src="" alt="Receipt Preview" style="max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                                </div>
+                                
+                                <small style="color: #ff758c; font-size: 0.75rem; display: block; margin-top: 5px;">
+                                    * You will also need to attach this image in the chat.<br>
+                                    (ဤဓာတ်ပုံကို Chat ထဲတွင်လည်း ပေးပို့ရမည်ဖြစ်ပါသည်။)
+                                </small>
+                            </div>
+
+                            <!-- 5-Digit Transaction ID -->
+                            <div class="form-group" style="text-align: left; margin-top: 1rem;">
+                                <label for="kbz-trx">
+                                    Last 5 Digits of Transaction ID *<br>
+                                    <span style="font-size: 0.75rem; color: #aaa;">လုပ်ငန်းစဉ်အမှတ် (Transaction ID) ၏ နောက်ဆုံးဂဏန်း ၅ လုံး</span>
+                                </label>
+                                <input type="text" id="kbz-trx" maxlength="5" placeholder="e.g. 12345" required>
+                            </div>
+                        </div>
                     </form>
 
                     <div class="checkout-actions">
                         <p class="action-title">Place Order Via:</p>
-                        <button class="checkout-btn telegram-btn" onclick="processCheckout('telegram')"><i class="fab fa-telegram-plane"></i> Send to Telegram</button>
-                        <button class="checkout-btn viber-btn" onclick="processCheckout('viber')"><i class="fab fa-viber"></i> Send to Viber</button>
-                        <div class="manual-call">
-                            <p>Or order manually by calling:</p>
-                            <a href="tel:+959793155856" class="call-btn"><i class="fas fa-phone-alt"></i> 09793155856</a>
-                        </div>
+                        <button class="checkout-btn telegram-btn" type="button" onclick="processCheckout('telegram')"><i class="fab fa-telegram-plane"></i> Send to Telegram</button>
+                        <button class="checkout-btn viber-btn" type="button" onclick="processCheckout('viber')"><i class="fab fa-viber"></i> Send to Viber</button>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Infinite Image Carousel -->
-    <div class="model-carousel" id="model-carousel-container">
-        <div class="model-track" id="model-track">
-            <!-- Dynamic Model Images Injected Here -->
-        </div>
-    </div>
-
-    <!-- Professional Footer -->
     <footer class="store-footer">
         <div class="footer-grid">
             <div class="footer-brand">
@@ -182,23 +188,20 @@
                 <h3>Customer Care</h3>
                 <a href="#">Contact Us</a>
                 <a href="#">Shipping & Returns</a>
-                <a href="#">Size Guide</a>
             </div>
             <div class="footer-social">
                 <h3>Follow Us</h3>
                 <div class="social-icons">
                     <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#"><i class="fa-brands fa-tiktok"></i></a>
                     <a href="#"><i class="fa-brands fa-instagram"></i></a>
                 </div>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 Luxe Fashion. All rights reserved.</p>
+            <p>&copy; 2026 Luxe Elite. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- PapaParse Library for reading Google Sheets CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="script.js"></script>
 </body>
